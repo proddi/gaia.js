@@ -5,12 +5,17 @@
 	<title>Insert title here</title>
     <script type="text/javascript" src="js/dbs.js"></script>
     <script type="text/javascript" src="js/decl.js"></script>
-    <script type="text/javascript" src="js/decl/widgets/data.js"></script>
     <script type="text/javascript" src="js/decl/widgets/repeat.js"></script>
+    <script type="text/javascript" src="js/decl/widgets/data.js"></script>
     <script type="text/javascript" src="js/decl/widgets/text.js"></script>
     <style>
         *[template] {
             opacity: .33;
+        }
+        h2 {
+            margin: 16px 0 8px 0;
+            border-bottom: 2px solid #888;
+            background: #DDD;
         }
     </style>
 </head>
@@ -18,6 +23,7 @@
 
 	<div data="dbs" source="=loadData();" refresh="20" orderBy="age"></div>
 
+    <h2>Foreach with binding</h2>
     <ul>
         <li foreach="a in dbs" data="dbs" source="dbs">
             Name = <span bind="a.name"></span>, <span bind="a.age"></span><br>
@@ -26,6 +32,7 @@
         </li>
     </ul>
 
+    <h2>Repeat without binding (var b)</h2>
     <ul>
         <li repeat="a in $b=[1,2,3,4,5]">
             #<span text="a"></span>
@@ -33,11 +40,17 @@
         </li>
     </ul>
 
-    <hr>
+    <h2>Repeat in select (var c)</h2>
+    <select>
+        <option repeat="o in $c=['Hans', 'Dieter', 'Wurst']" text="o"></option>
+    </select>
+
+    <h2>Controller</h2>
     <div useController="a_controller as ctrl">
         <span text="$navigator.userAgent"></span>
     </div>
 
+    <h2>Template definitions</h2>
     <div template="template1">
         template<span>1</span>
     </div>

@@ -1,6 +1,7 @@
 /* 
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
+ * @widget: repeat
  */
 
 decl.widget("repeat", function(node) {
@@ -27,7 +28,7 @@ decl.widget("repeat", function(node) {
 	    parent.appendChild(clone);
 	}
 
-    dataSet.on("add", function(item) {
+    dataSet.$on("add", function(item) {
 	    var clone = node.cloneNode(true);
 	    window[data] = item;
         decl.prepare(clone, 1);
@@ -35,7 +36,7 @@ decl.widget("repeat", function(node) {
 	    parent.appendChild(clone);
     });
 
-    dataSet.on("remove", function(item, idx) {
+    dataSet.$on("remove", function(item, idx) {
         var node = parent.children[idx];
         parent.removeChild(node);
     });

@@ -64,13 +64,13 @@ function loadData() {
         if (a.add) return a;
 
         var callbacks = {};
-        a.add = function(item) {
+        a.$add = function(item) {
             this.push(item);
             for (var i=0, l=callbacks.add.length; i<l; i++) {
                 callbacks.add[i](item);
             }
         };
-        a.remove = function(item) {
+        a.$remove = function(item) {
             var idx = this.indexOf(item);
             if (idx<0) return;
             for (var i=0, l=callbacks.remove.length; i<l; i++) {
@@ -78,9 +78,9 @@ function loadData() {
             }
             this.splice(idx, 1);
         };
-        a.update = function(item) {
+        a.$update = function(item) {
         };
-        a.on = function(event, callback) {
+        a.$on = function(event, callback) {
             (callbacks[event] = callbacks[event] || []).push(callback);
         };
         return a;
