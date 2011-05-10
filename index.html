@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<title>Insert title here</title>
+    <script type="text/javascript" src="js/dbs.js"></script>
+    <script type="text/javascript" src="js/decl.js"></script>
+    <script type="text/javascript" src="js/decl/widgets/data.js"></script>
+    <script type="text/javascript" src="js/decl/widgets/repeat.js"></script>
+    <script type="text/javascript" src="js/decl/widgets/text.js"></script>
+    <style>
+        *[template] {
+            opacity: .33;
+        }
+    </style>
+</head>
+<body decl>
+
+	<div data="dbs" source="=loadData();" refresh="20" orderBy="age"></div>
+
+    <ul>
+        <li foreach="a in dbs" data="dbs" source="dbs">
+            Name = <span bind="a.name"></span>, <span bind="a.age"></span><br>
+            (living in <span bind="a.country"></span>)
+            <a click="a.remove()">[x]</a>
+        </li>
+    </ul>
+
+    <ul>
+        <li repeat="a in $b=[1,2,3,4,5]">
+            #<span text="a"></span>
+            <span text="ctrl.name"></span>
+        </li>
+    </ul>
+
+    <hr>
+    <div useController="a_controller as ctrl">
+        <span text="$navigator.userAgent"></span>
+    </div>
+
+    <div template="template1">
+        template<span>1</span>
+    </div>
+    <div template="template2">
+        template<span>*2*</span>
+    </div>
+
+	<script>
+ 		var scope = { dbs: dbs };
+
+		// 1st stage
+		var nodes = document.querySelectorAll("[foreach],[data]");
+		for (var i = 0, node; (node = nodes[i]); i++) {
+            if (node.hasAttribute("data"))
+                if (!proceedData(node)) continue;
+            if (node.hasAttribute("foreach"))
+                if (!proceedForeach(node)) continue;
+		}
+
+	    // helper
+	    function proceedData(node) {
+		    var target = node.getAttribute("data"),
+		        from = node.getAttribute("source");
+		    var canRemove = !node.children.length;
+		    if (canRemove)
+		    	node.parentNode.removeChild(node);
+
+		    solve(scope, from, function(data) {
+			    console.log("proceedData", data, target, scope);
+		    	scope[target] = data;
+			});
+
+	    	if (!canRemove) return true; // parse again on the same node
+		}
+		
+		// helper
+		function proceedForeach(node) {
+			// parse JS
+			var attrib = node.getAttribute("foreach");
+			console.log("foreach", node, attrib.match(/^(\w*) in ([\w|\.]*)$/));
+			var match = attrib.match(/^(\w*) in ([\w|\.]*)$/);
+			if (match.length !==3) throw new Error("foreach needs 'x in y'");
+			var innerVar = match[1],
+			    outerVar = match[2];
+
+            var parent = node.parentNode;
+            parent.removeChild(node);
+            node.removeAttribute("foreach");
+			solve(scope, outerVar, function(data) {
+			    console.log("solved value:", outerVar, data);		     
+	            // extract definition
+	            // clone and apply definition
+	            for (var i=0, l=data.length; i<l; i++) {
+	                var clone = node.cloneNode(true);
+	                scope[innerVar] = data[i];
+	                proceedBinds(clone, data[i]);
+	                parent.appendChild(clone);
+	            }
+			});
+		}
+
+		function proceedBinds(node, data) {
+			var nodes = node.querySelectorAll("[bind]");
+			for (var i = 0, node; (node = nodes[i]); i++) {
+				var prop = solveProp(scope, node.getAttribute("bind"));
+				decl.watch(prop[0], prop[1], function(node, value) {
+					node.innerText = value;
+				}.bind(null, node));
+				node.innerText = prop[0][prop[1]];
+				node.removeAttribute("bind");
+			}
+		}
+
+		// expr can be scope[expr], {expr}
+		function solve(scope, expr, callback) {
+			var data;
+			if ("=" === expr.charAt(0)) {
+				data = eval(expr.substr(1));
+			} else {
+				data = scope[expr];
+			}
+			
+            console.log("solve", expr, scope);
+			setTimeout(function() {
+	            callback(data);
+			}, 250);
+		}
+
+		function solveProp(scope, path) {
+			path = path.split(".");
+	        for (var i = 1, l = path.length, name; (name = path.shift()) && i<l; i++) {
+	            scope = scope[name];
+	        }
+	        return [scope, name];
+		}
+	</script>
+</body>
+</html>
