@@ -23,7 +23,7 @@
 
 	<div data="dbs" source="=loadData();" refresh="20" orderBy="age"></div>
 
-    <h2>Foreach with binding</h2>
+    <h2>Foreach with binding (using dbs)</h2>
     <ul>
         <li foreach="a in dbs" data="dbs" source="dbs">
             Name = <span bind="a.name"></span>, <span bind="a.age"></span><br>
@@ -32,12 +32,17 @@
         </li>
     </ul>
 
-    <h2>Repeat without binding (var b)</h2>
+    <h2>Repeat without binding (var b) - complex template</h2>
     <ul>
         <li repeat="a in $b=[1,2,3,4,5]">
             #<span text="a"></span>
             <span text="ctrl.name"></span>
         </li>
+    </ul>
+
+    <h2>Repeat without binding (var b) - simple template</h2>
+    <ul>
+        <li repeat="a in $b=[1,2,3,4,5]" text="a"></li>
     </ul>
 
     <h2>Repeat in select (var c)</h2>
