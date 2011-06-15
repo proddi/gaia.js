@@ -25,31 +25,28 @@
 
 	<div data="dbs" source="=loadData();" refresh="20" orderBy="age"></div>
 
-    <h2>Foreach with binding (using dbs)</h2>
+    <h2>Repeating atom without binding (var b) - simple template</h2>
     <ul>
-        <li foreach="a in dbs" data="dbs" source="dbs">
-            Name = <span binder="a.name"></span>, <span binder="a.age"></span><br>
-            (living in <span binder="a.country"></span>)
-            <a click="a.remove()">[x]</a>
-        </li>
+        <li repeat="a in $b=[1,2,3,4,5]" text="a"></li>
     </ul>
 
     <h2>Repeating atom without binding (var b) - complex template</h2>
     <ul>
         <li repeat="a in $b=[1,2,3,4,5]">
             #<span text="a"></span>
-            <span text="ctrl.name"></span>
         </li>
-    </ul>
-
-    <h2>Repeating atom without binding (var b) - simple template</h2>
-    <ul>
-        <li repeat="a in $b=[1,2,3,4,5]" text="a"></li>
     </ul>
 
     <h2>Repeating object without binding (var b) - simple template</h2>
     <ul>
-        <li repeat="a in $b=[{name:'Klaus'}, {name:'Adam'},{name:'Helen'},{name:'Silver'}]" bind="a.name" use="template1" scope="a_scope"></li>
+        <li repeat="a in $b=[{name:'Klaus',age:45}, {name:'Adam',age:25},{name:'Helen',age:31},{name:'Silver',age:54}]" bind="a.name" use="template1" scope="a_scope"></li>
+    </ul>
+
+    <h2>Repeating object without binding (var b) - complex template</h2>
+    <ul>
+        <li repeat="a in b">
+            <span bind="a.name"></span>, <span bind="a.age"></span>
+        </li>
     </ul>
 
     <h2>Repeat in select (var c)</h2>
@@ -70,94 +67,5 @@
         template<span>*2*</span>
     </div>
 
-	<script>
- 		var scope = { dbs: dbs };
-
-		// 1st stage
-		var nodes = document.querySelectorAll("[foreach],[data]");
-		for (var i = 0, node; (node = nodes[i]); i++) {
-            if (node.hasAttribute("data"))
-                if (!proceedData(node)) continue;
-            if (node.hasAttribute("foreach"))
-                if (!proceedForeach(node)) continue;
-		}
-
-	    // helper
-	    function proceedData(node) {
-		    var target = node.getAttribute("data"),
-		        from = node.getAttribute("source");
-		    var canRemove = !node.children.length;
-		    if (canRemove)
-		    	node.parentNode.removeChild(node);
-
-		    solve(scope, from, function(data) {
-			    console.log("proceedData", data, target, scope);
-		    	scope[target] = data;
-			});
-
-	    	if (!canRemove) return true; // parse again on the same node
-		}
-		
-		// helper
-		function proceedForeach(node) {
-			// parse JS
-			var attrib = node.getAttribute("foreach");
-			console.log("foreach", node, attrib.match(/^(\w*) in ([\w|\.]*)$/));
-			var match = attrib.match(/^(\w*) in ([\w|\.]*)$/);
-			if (match.length !==3) throw new Error("foreach needs 'x in y'");
-			var innerVar = match[1],
-			    outerVar = match[2];
-
-            var parent = node.parentNode;
-            parent.removeChild(node);
-            node.removeAttribute("foreach");
-			solve(scope, outerVar, function(data) {
-			    console.log("solved value:", outerVar, data);		     
-	            // extract definition
-	            // clone and apply definition
-	            for (var i=0, l=data.length; i<l; i++) {
-	                var clone = node.cloneNode(true);
-	                scope[innerVar] = data[i];
-	                proceedBinds(clone, data[i]);
-	                parent.appendChild(clone);
-	            }
-			});
-		}
-
-		function proceedBinds(node, data) {
-			var nodes = node.querySelectorAll("[binder]");
-			for (var i = 0, node; (node = nodes[i]); i++) {
-				var prop = solveProp(scope, node.getAttribute("binder"));
-				decl.watch(prop[0], prop[1], function(node, value) {
-					node.innerText = value;
-				}.bind(null, node));
-				node.innerText = prop[0][prop[1]];
-				node.removeAttribute("binder");
-			}
-		}
-
-		// expr can be scope[expr], {expr}
-		function solve(scope, expr, callback) {
-			var data;
-			if ("=" === expr.charAt(0)) {
-				data = eval(expr.substr(1));
-			} else {
-				data = scope[expr];
-			}
-			
-            console.log("solve", expr, scope);
-			setTimeout(function() {
-	            callback(data);
-			}, 250);
-		}
-
-		function solveProp(scope, path) {
-			path = path.split(".");
-	        for (var i = 1, l = path.length, name; (name = path.shift()) && i<l; i++) {
-	            scope = scope[name];
-	        }
-	        return [scope, name];
-		}
-	</script>
 </body>
 </html>
