@@ -7,7 +7,9 @@
     <script type="text/javascript" src="js/decl.js"></script>
     <script type="text/javascript" src="js/decl/widgets/repeat.js"></script>
     <script type="text/javascript" src="js/decl/widgets/data.js"></script>
+    <script type="text/javascript" src="js/decl/widgets/bind.js"></script>
     <script type="text/javascript" src="js/decl/widgets/text.js"></script>
+    <script type="text/javascript" src="js/decl/widgets/template.js"></script>
     <style>
         *[template] {
             opacity: .33;
@@ -26,13 +28,13 @@
     <h2>Foreach with binding (using dbs)</h2>
     <ul>
         <li foreach="a in dbs" data="dbs" source="dbs">
-            Name = <span bind="a.name"></span>, <span bind="a.age"></span><br>
-            (living in <span bind="a.country"></span>)
+            Name = <span binder="a.name"></span>, <span binder="a.age"></span><br>
+            (living in <span binder="a.country"></span>)
             <a click="a.remove()">[x]</a>
         </li>
     </ul>
 
-    <h2>Repeat without binding (var b) - complex template</h2>
+    <h2>Repeating atom without binding (var b) - complex template</h2>
     <ul>
         <li repeat="a in $b=[1,2,3,4,5]">
             #<span text="a"></span>
@@ -40,9 +42,14 @@
         </li>
     </ul>
 
-    <h2>Repeat without binding (var b) - simple template</h2>
+    <h2>Repeating atom without binding (var b) - simple template</h2>
     <ul>
         <li repeat="a in $b=[1,2,3,4,5]" text="a"></li>
+    </ul>
+
+    <h2>Repeating object without binding (var b) - simple template</h2>
+    <ul>
+        <li repeat="a in $b=[{name:'Klaus'}, {name:'Adam'},{name:'Helen'},{name:'Silver'}]" bind="a.name" use="template1" scope="a_scope"></li>
     </ul>
 
     <h2>Repeat in select (var c)</h2>
@@ -118,14 +125,14 @@
 		}
 
 		function proceedBinds(node, data) {
-			var nodes = node.querySelectorAll("[bind]");
+			var nodes = node.querySelectorAll("[binder]");
 			for (var i = 0, node; (node = nodes[i]); i++) {
-				var prop = solveProp(scope, node.getAttribute("bind"));
+				var prop = solveProp(scope, node.getAttribute("binder"));
 				decl.watch(prop[0], prop[1], function(node, value) {
 					node.innerText = value;
 				}.bind(null, node));
 				node.innerText = prop[0][prop[1]];
-				node.removeAttribute("bind");
+				node.removeAttribute("binder");
 			}
 		}
 
