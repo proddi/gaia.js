@@ -6,6 +6,10 @@ function loadData() {
 
 (function() {
 
+    decl.INIT  = 0;
+    decl.STRUC = 1;
+    decl.DATA  = 2;
+
     var widgets = {};
 
     decl.widget = function(ns, widget, prio) {
@@ -45,20 +49,35 @@ function loadData() {
 		setter.watch(callback);
 	};
 
-    decl.prepare = function(rootNode, prio) {
-        prio = prio || 0;
-        var queryString = "";
-        for (var ns in widgets[prio]) {
-            queryString += (queryString ? ",[" : "[") + ns + "]";
-        }
-        var nodes = rootNode.querySelectorAll(queryString);
-        for (var i = 0, node; (node = nodes[i]); i++) {
-            for (ns in widgets[prio]) {
-                if (node.hasAttribute(ns))
-                    widgets[prio][ns](node);
+	decl.prepare = function(rootNode, scope, prio) {
+	    var hasParent = !!rootNode.parentNode;
+	    var parent;
+	    if (hasParent) {
+	        parent = rootNode.parentNode;
+	    } else {
+	        parent = document.createElement("div");
+	        parent.appendChild(rootNode);
+	    }
+    
+	    for (var step = prio; step <= decl.DATA; step++) {
+	        var queryString = "";
+	        for ( var ns in widgets[step]) {
+	            queryString += (queryString ? ",[" : "[") + ns + "]";
+	        }
+            var nodes = parent.querySelectorAll(queryString);
+            for (var i = 0, node; node = nodes[i]; i++) {
+                for (ns in widgets[step]) {
+                    if (node.hasAttribute(ns)) {
+                        widgets[step][ns](node, scope);
+                    }
+                }
             }
-		}
-    };
+	    }
+	    
+	    if (!hasParent) {
+	        parent.removeChild(rootNode);
+	    }
+	};
 
     decl._prepareArray = function(a) {
         if (a.add) return a;
@@ -86,17 +105,12 @@ function loadData() {
         return a;
     };
 
-    function prepareScope(scope) {
-        window.s = scope;
-        console.log(scope);
-    }
-
     domLoaded(function() {
 		// 1st stage
+        var scope = {};
 		var nodes = document.querySelectorAll("[decl]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
-            decl.prepare(node, 1);
-            decl.prepare(node, 0);
+            decl.prepare(node, scope, decl.INIT);
 		}
     });
 

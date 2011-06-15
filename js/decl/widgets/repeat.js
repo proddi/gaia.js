@@ -5,7 +5,9 @@
  */
 
 decl.widget("repeat", function(node) {
+    var scope = window;
     var attrib = node.getAttribute("repeat");
+    node.removeAttribute("repeat");
     var match = attrib.match(/^(\w*) in (.*)$/);
     // console.log("widget->repeat()", attrib, match);
     if (!match || match.length !== 3) {
@@ -17,32 +19,22 @@ decl.widget("repeat", function(node) {
 
     var parent = node.parentNode;
     parent.removeChild(node);
-    node.removeAttribute("repeat");
 
     // extract definition
     // clone and apply definition
     for ( var i = 0, l = dataSet.length; i < l; i++) {
-        var wNode = document.createElement("div");
+        scope[data] = dataSet[i];
         var clone = node.cloneNode(true);
-        wNode.appendChild(clone);
-        window[data] = dataSet[i];
-        decl.prepare(wNode, 1);
-        decl.prepare(wNode, 0);
-        wNode.removeChild(clone); // might its not needed because of adding to parent next line
+        decl.prepare(clone, scope, decl.DATA);
         parent.appendChild(clone);
     }
 
     dataSet.$on("add", function(item) {
         console.log('dataSet.$on("add", ...', item, data);
-        var clone = document.createElement("div"); // querySelector only works on child elements so we have to create a
-        // node around
-        clone.appendChild(node.cloneNode(true));
-        window[data] = item;
-        decl.prepare(clone, 1);
-        decl.prepare(clone, 0);
-        var child = clone.firstChild;
-        clone.removeChild(child);
-        parent.appendChild(child);
+        scope[data] = item;
+        var clone = node.cloneNode(true);
+        decl.prepare(clone, scope, decl.DATA);
+        parent.appendChild(clone);
     });
 
     dataSet.$on("remove", function(item, idx) {
@@ -55,5 +47,34 @@ decl.widget("repeat", function(node) {
 
 // expr can be scope[expr], {expr}
 function solve2(scope, expr) {
-    return "$" === expr.charAt(0) ? eval(expr.substr(1)) : scope[expr];
+    if ("$" === expr.charAt(0)) {
+        return eval(expr.substr(1));
+    }
+    var path = expr.split(".");
+    if (1 === path.length) {
+        return scope[expr];
+    }
+    for ( var i = 1, l = path.length, name; (name = path.shift()) && i < l; i++) {
+        if (undefined === (scope = scope[name])) {
+            return;
+        }
+    }
+    return scope[name];
+}
+
+// solving for binds
+function solveBind(scope, expr) {
+    if ("$" === expr.charAt(0)) {
+        return [undefined, expr, eval(expr.substr(1))]; // exec
+    }
+    var path = expr.split(".");
+    if (1 === path.length) {
+        return [undefined, expr, scope[expr]]; // atom
+    }
+    for ( var i = 1, l = path.length, name; (name = path.shift()) && i < l; i++) {
+        if (undefined === (scope = scope[name])) {
+            return;
+        }
+    }
+    return [scope, name, scope[name]]; // object
 }
