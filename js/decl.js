@@ -12,6 +12,13 @@ function loadData() {
 
     var widgets = {};
 
+    /**
+     * Register a widget.
+     * 
+     * @param {String} ns Namespace/Attribute name
+     * @param {Object} widget
+     * @param {Number} prio Level of processing
+     */
     decl.widget = function(ns, widget, prio) {
         prio = prio || 0;
         console.log("register widget", "->", ns, prio);
@@ -19,7 +26,11 @@ function loadData() {
     };
 
     /**
-     * Watch changes of an property, hot patches if needed
+     * Watch changes of an property. It patches the object if its needed.
+     * 
+     * @param {Object} o
+     * @param {String} prop
+     * @param {Function} callback
      */
     decl.watch = function(o, prop, callback) {
 		var getter = o.__lookupGetter__(prop),
@@ -49,14 +60,21 @@ function loadData() {
 		setter.watch(callback);
 	};
 
-	decl.prepare = function(rootNode, scope, prio) {
-	    var hasParent = !!rootNode.parentNode;
+	/**
+	 * Prepare a dom fragment with widget functions
+	 * 
+	 * @param {DOMNode} fragment The fragment that needs to be prepared.
+	 * @param {Object} scope
+	 * @param {Number} prio can be decl.INIT, decl.STRUC, decl.DATA
+	 */
+	decl.prepare = function(fragment, scope, prio) {
+	    var hasParent = !!fragment.parentNode;
 	    var parent;
 	    if (hasParent) {
-	        parent = rootNode.parentNode;
+	        parent = fragment.parentNode;
 	    } else {
 	        parent = document.createElement("div");
-	        parent.appendChild(rootNode);
+	        parent.appendChild(fragment);
 	    }
     
 	    for (var step = prio; step <= decl.DATA; step++) {
@@ -75,12 +93,64 @@ function loadData() {
 	    }
 	    
 	    if (!hasParent) {
-	        parent.removeChild(rootNode);
+	        parent.removeChild(fragment);
 	    }
 	};
 
+	/**
+	 * Solves an expression. Can be a single atom, a object or an expression to evaluate.
+	 * Its not binding!
+	 * 
+	 * @param {Object} scope
+	 * @param {String} expr
+	 * @returns {String} Resolved expression.
+	 */
+	decl.solve = function(scope, expr) {
+	    if ("$" === expr.charAt(0)) {
+	        return eval(expr.substr(1));
+	    }
+	    var path = expr.split(".");
+	    if (1 === path.length) {
+	        return scope[expr];
+	    }
+	    for ( var i = 1, l = path.length, name; (name = path.shift()) && i < l; i++) {
+	        if (undefined === (scope = scope[name])) {
+	            return;
+	        }
+	    }
+	    return scope[name];
+	};
+
+	/**
+	 * Solves expression for binds. It returns object and property for watching.
+	 * 
+	 * @param {Object} scope
+	 * @param {String} expr
+	 * @returns {Array} [scope, prop, value]
+	 */
+	decl.solveBind = function(scope, expr) {
+	    if ("$" === expr.charAt(0)) {
+	        return [undefined, expr, eval(expr.substr(1))]; // exec
+	    }
+	    var path = expr.split(".");
+	    if (1 === path.length) {
+	        return [undefined, expr, scope[expr]]; // atom
+	    }
+	    for ( var i = 1, l = path.length, name; (name = path.shift()) && i < l; i++) {
+	        if (undefined === (scope = scope[name])) {
+	            return;
+	        }
+	    }
+	    return [scope, name, scope[name]]; // object
+	};
+
+	/**
+	 * Prepare array with some listeners.
+	 * 
+	 * @param {Array} a The array needs to be prepared.
+	 */
     decl._prepareArray = function(a) {
-        if (a.add) return a;
+        if (a.$add) return a;
 
         var callbacks = {};
         a.$add = function(item) {

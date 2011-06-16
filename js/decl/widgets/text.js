@@ -7,6 +7,6 @@
 
 decl.widget("text", function(node) {
     var attrib = node.getAttribute("text");
-    node.innerText = solve2(window, attrib);
+    node.innerText = decl.solve(window, attrib);
     node.removeAttribute("text");
 }, decl.DATA);

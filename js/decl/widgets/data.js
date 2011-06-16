@@ -6,4 +6,4 @@
 
 decl.widget("data", function(node) {
     console.log("widget->data()");
-});
+}, decl.INIT);

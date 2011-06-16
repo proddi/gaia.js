@@ -10,7 +10,7 @@ decl.widget("template", function(node) {
     var name = node.getAttribute("template");
     templates[name] = node;
     node.parentNode && node.parentNode.removeChild(node);
-}, 1);
+}, decl.INIT);
 
 decl.widget("use", function(node) {
 });

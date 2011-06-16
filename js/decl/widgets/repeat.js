@@ -7,13 +7,15 @@
 decl.widget("repeat", function(node) {
     var scope = window;
     var attrib = node.getAttribute("repeat");
+    var template = node.getAttribute("use");
     node.removeAttribute("repeat");
     var match = attrib.match(/^(\w*) in (.*)$/);
     // console.log("widget->repeat()", attrib, match);
     if (!match || match.length !== 3) {
         throw new Error("repeat needs 'x in y'");
     }
-    var data = match[1], dataSet = solve2(window, match[2]);
+
+    var data = match[1], dataSet = decl.solve(window, match[2]);
 
     dataSet = decl._prepareArray(dataSet);
 
@@ -43,38 +45,4 @@ decl.widget("repeat", function(node) {
         parent.removeChild(node);
     });
 
-}, 1);
-
-// expr can be scope[expr], {expr}
-function solve2(scope, expr) {
-    if ("$" === expr.charAt(0)) {
-        return eval(expr.substr(1));
-    }
-    var path = expr.split(".");
-    if (1 === path.length) {
-        return scope[expr];
-    }
-    for ( var i = 1, l = path.length, name; (name = path.shift()) && i < l; i++) {
-        if (undefined === (scope = scope[name])) {
-            return;
-        }
-    }
-    return scope[name];
-}
-
-// solving for binds
-function solveBind(scope, expr) {
-    if ("$" === expr.charAt(0)) {
-        return [undefined, expr, eval(expr.substr(1))]; // exec
-    }
-    var path = expr.split(".");
-    if (1 === path.length) {
-        return [undefined, expr, scope[expr]]; // atom
-    }
-    for ( var i = 1, l = path.length, name; (name = path.shift()) && i < l; i++) {
-        if (undefined === (scope = scope[name])) {
-            return;
-        }
-    }
-    return [scope, name, scope[name]]; // object
-}
+}, decl.STRUC);

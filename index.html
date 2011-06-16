@@ -39,13 +39,13 @@
 
     <h2>Repeating object without binding (var b) - simple template</h2>
     <ul>
-        <li repeat="a in $b=[{name:'Klaus',age:45}, {name:'Adam',age:25},{name:'Helen',age:31},{name:'Silver',age:54}]" bind="a.name" use="template1" scope="a_scope"></li>
+        <li repeat="a in $b=[{name:'Klaus',age:45}, {name:'Adam',age:25}, {name:'Helen',age:31}, {name:'Silver',age:54}]" bind="a.name" use="template1" scope="a_scope"></li>
     </ul>
 
     <h2>Repeating object without binding (var b) - complex template</h2>
     <ul>
         <li repeat="a in b">
-            <span bind="a.name"></span>, <span bind="a.age"></span>
+            <span bind="a.name"></span>, <span text="a.age"></span>
         </li>
     </ul>
 
