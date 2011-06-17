@@ -58,8 +58,7 @@ function loadData() {
 			o.__defineSetter__(prop, setter);
 			// cleanup, loose bindings on object remove
 			(o.__looseBinds = o.__looseBinds || []).push(function() {
-                callbacks = undefined;
-			    console.log("o.__looseBinds", prop, callbacks);
+                callbacks.splice(0, callbacks.length);
 			});
 		}
 		setter.watch(callback);

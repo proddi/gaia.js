@@ -36,7 +36,6 @@ decl.widget("repeat", function(node) {
     }
 
     dataSet.$on("add", function(item) {
-        console.log('dataSet.$on("add", ...', item, data);
         scope[data] = item;
         var clone = node.cloneNode(true);
         decl.prepare(clone, scope, decl.DATA);
@@ -44,7 +43,6 @@ decl.widget("repeat", function(node) {
     });
 
     dataSet.$on("remove", function(item, idx) {
-        console.log('dataSet.$on("remove", ...', item, idx);
         var node = parent.children[idx];
         parent.removeChild(node);
     });
