@@ -4,13 +4,21 @@
  * @widget: template
  */
 
-var templates = {};
+(function() {
+    var templates = {};
+
+    decl.addTemplate = function(id, template) {
+        templates[id] = template;
+    };
+
+    decl.getTemplate = function(id) {
+        return templates[id];
+    };
+})();
 
 decl.widget("template", function(node) {
     var name = node.getAttribute("template");
-    templates[name] = node;
+    node.removeAttribute("template");
+    decl.addTemplate(name, node);
     node.parentNode && node.parentNode.removeChild(node);
 }, decl.INIT);
-
-decl.widget("use", function(node) {
-});

@@ -7,8 +7,15 @@
 decl.widget("repeat", function(node) {
     var scope = window;
     var attrib = node.getAttribute("repeat");
-    var template = node.getAttribute("use");
     node.removeAttribute("repeat");
+
+    var parent = node.parentNode;
+    parent.removeChild(node);
+
+    var template = node.getAttribute("use");
+    if (template) {
+        node = decl.getTemplate(template) || node;
+    }
     var match = attrib.match(/^(\w*) in (.*)$/);
     // console.log("widget->repeat()", attrib, match);
     if (!match || match.length !== 3) {
@@ -18,9 +25,6 @@ decl.widget("repeat", function(node) {
     var data = match[1], dataSet = decl.solve(window, match[2]);
 
     dataSet = decl._prepareArray(dataSet);
-
-    var parent = node.parentNode;
-    parent.removeChild(node);
 
     // extract definition
     // clone and apply definition
