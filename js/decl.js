@@ -56,6 +56,11 @@ function loadData() {
 			};
 			o.__defineGetter__(prop, getter);
 			o.__defineSetter__(prop, setter);
+			// cleanup, loose bindings on object remove
+			(o.__looseBinds = o.__looseBinds || []).push(function() {
+                callbacks = undefined;
+			    console.log("o.__looseBinds", prop, callbacks);
+			});
 		}
 		setter.watch(callback);
 	};
@@ -162,6 +167,9 @@ function loadData() {
         a.$remove = function(item) {
             var idx = this.indexOf(item);
             if (idx<0) return;
+            if (item.__looseBinds) {
+                for (var i = 0, l = item.__looseBinds.length; i<l; i++) item.__looseBinds[i]();
+            }
             for (var i=0, l=callbacks.remove.length; i<l; i++) {
                 callbacks.remove[i](item, idx);
             }
@@ -201,7 +209,7 @@ function loadData() {
         } else
         /* Safari, iCab, Konqueror */
         if (/KHTML|WebKit|iCab/i.test(navigator.userAgent)) {
-            var DOMLoadTimer = setInterval(function () {
+            var DOMLoadTimer = setInterval(function() {
                 if (/loaded|complete/i.test(document.readyState)) {
                     callback();
                     clearInterval(DOMLoadTimer);
