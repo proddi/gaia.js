@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<title>List example with bindings</title>
+    <script type="text/javascript" src="../../js/decl.js"></script>
+    <script type="text/javascript" src="../../js/decl/widgets/repeat.js"></script>
+    <script type="text/javascript" src="../../js/decl/widgets/data.js"></script>
+    <script type="text/javascript" src="../../js/decl/widgets/bind.js"></script>
+    <script type="text/javascript" src="../../js/decl/widgets/text.js"></script>
+    <script type="text/javascript" src="../../js/decl/widgets/eval.js"></script>
+    <script type="text/javascript" src="../../js/decl/widgets/template.js"></script>
+    <style>
+        *[template] {
+            opacity: .33;
+        }
+        .poi {
+            margin: 0;
+            padding: 0;
+            border-bottom: 1px solid #b3b3b3;
+        }
+        .poi li {
+            position: relative;
+            display: block;
+            height: 64px;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#efefef), to(#e8e8e8));
+            border-top: 1px solid #b3b3b3;
+        }
+        .poi .icon {
+            position: absolute;
+            top: 7px;
+            left: 7px;
+            height: 50px;
+            width: 50px;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+        .poi .name {
+            position: absolute;
+            top: 9px;
+            left: 62px;
+            right: 70px;
+            font-size: 18px;
+        }
+        .poi .desc {
+            position: absolute;
+            top: 39px;
+            left: 62px;
+            right: 70px;
+            font-size: 18px;
+            color: #888;
+        }
+        .poi .dist {
+            position: absolute;
+            top: 25px;
+            right: 10px;
+            color: #888;
+        }
+    </style>
+</head>
+<script>
+     var pois = [{
+         type: "address",
+         name: "Unter den Linden 23",
+         description: "10117 Berlin, Germany",
+         distance: "2.9 mi"
+     }, {
+         type: "station",
+         name: "Unter den Linden/Friedrichstrasse",
+         description: "Berlin",
+         distance: "2.9 mi"
+     }, {
+         type: "address",
+         name: "Jannowitzbrücke",
+         description: "Stralauerstraße",
+         distance: "4.1 mi"
+     }];
+</script>
+<body decl>
+    <h2>Repeating object without binding (var b) - simple <span>template</span></h2>
+    <ul class="poi">
+        <li repeat="poi in pois" use="poilistitem"></li>
+    </ul>
+    <li template="poilistitem">
+        <div class="icon" eval="this.style.backgroundImage = 'url(images/' + poi.type + '.png)'"></div>
+        <span class="name" bind="poi.name"></span>
+        <span class="desc" bind="poi.description"></span>
+        <span class="dist" bind="poi.distance"></span>
+    </li>
+</body>
+</html>
