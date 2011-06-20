@@ -187,7 +187,7 @@ function loadData() {
         var scope = {};
 		var nodes = document.querySelectorAll("[decl]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
-            decl.prepare(node, scope, decl.INIT);
+            decl.compile.call(scope, node);
 		}
     });
 
