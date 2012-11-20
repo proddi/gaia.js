@@ -4,8 +4,7 @@
  * @widget: repeat
  */
 
-decl.widget("repeat", function(node) {
-    var scope = window;
+decl.widget("repeat", function(node, scope) {
     var attrib = node.getAttribute("repeat");
     node.removeAttribute("repeat");
 
@@ -22,23 +21,26 @@ decl.widget("repeat", function(node) {
         throw new Error("repeat needs 'x in y'");
     }
 
-    var data = match[1], dataSet = decl.solve(window, match[2]);
+    var data = match[1],
+        dataSet = decl.solve(scope, match[2]);
 
     dataSet = decl._prepareArray(dataSet);
 
     // extract definition
     // clone and apply definition
     for ( var i = 0, l = dataSet.length; i < l; i++) {
-        scope[data] = dataSet[i];
         var clone = node.cloneNode(true);
-        decl.prepare(clone, scope, decl.DATA);
+        var cloneScope = decl.scope(scope);
+        cloneScope[data] = dataSet[i];
+        decl.prepare(clone, cloneScope, [decl.STRUC, decl.DATA]);
         parent.appendChild(clone);
     }
 
     dataSet.$on("add", function(item) {
-        scope[data] = item;
         var clone = node.cloneNode(true);
-        decl.prepare(clone, scope, decl.DATA);
+        var cloneScope = decl.scope(scope);
+        cloneScope[data] = item;
+        decl.prepare(clone, cloneScope, decl.DATA);
         parent.appendChild(clone);
     });
 

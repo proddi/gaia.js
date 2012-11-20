@@ -6,9 +6,9 @@ function loadData() {
 
 (function() {
 
-    decl.INIT  = 0;
-    decl.STRUC = 1;
-    decl.DATA  = 2;
+    decl.INIT  = 1;
+    decl.STRUC = 2;
+    decl.DATA  = 3;
 
     var widgets = {};
 
@@ -21,8 +21,22 @@ function loadData() {
      */
     decl.widget = function(ns, widget, prio) {
         prio = prio || 0;
+        widget.ns = ns;
         console.log("register widget", "->", ns, prio);
         (widgets[prio] = widgets[prio] || {})[ns] = widget;
+    };
+
+    decl.widgets = function(prio) {
+        var res = [];
+        if (prio instanceof Array) {
+            var p;
+            while ((p = prio.shift())) {
+                for (var key in widgets[p] || {}) res.push(widgets[p][key]);
+            }
+        } else {
+            for (var key in widgets[prio] || {}) res.push(widgets[prio][key]);
+        }
+        return res;
     };
 
     /**
@@ -69,9 +83,9 @@ function loadData() {
 	 * 
 	 * @param {DOMNode} fragment The fragment that needs to be prepared.
 	 * @param {Object} scope
-	 * @param {Number} prio can be decl.INIT, decl.STRUC, decl.DATA
+	 * @param {Number|Array} prio can be decl.INIT, decl.STRUC, decl.DATA or like [decl.INIT, decl.STRUC]
 	 */
-	decl.prepare = function(fragment, scope, prio) {
+	decl.prepare = function(fragment, scope, prios) {
 	    var hasParent = !!fragment.parentNode;
 	    var parent;
 	    if (hasParent) {
@@ -80,7 +94,67 @@ function loadData() {
 	        parent = document.createElement("div");
 	        parent.appendChild(fragment);
 	    }
-    
+
+        // proceed structure (decl.STRUC)
+        var widgets = decl.widgets(decl.STRUC)
+          , widget
+          , node
+          , i
+          , left = 100
+          , queryString
+          ;
+        if (widgets) {
+            queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
+            while ((node = parent.querySelector(queryString))) {
+                for (i = 0; (widget = widgets[i]); i++) {
+                    if (node.hasAttribute(widget.ns)) {
+                        widget(node, scope);
+                    }
+                }
+                left--;
+                if (!left) break;
+            }
+        }
+
+        // proceed data (decl.DATA)
+        widgets = decl.widgets(decl.DATA);
+        if (widgets) {
+            queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
+            var nodes = parent.querySelectorAll(queryString);
+            for (i = 0, node; node = nodes[i]; i++) {
+                for (var j = 0, widget; (widget = widgets[j]); j++) {
+                    if (node.hasAttribute(widget.ns)) {
+                        widget(node, scope);
+                    }
+                }
+            }
+        }
+/*
+
+        var prio,
+            widgets;
+        while ((prio = prios.shift())) {
+            widgets = decl.widgets(prio);
+            while (widgets && (widget = widgets.shift())) {
+                console.log("-->", prio, widget.ns);
+            }
+        }
+/*
+
+        var widgets = decl.widgets(prio);
+        if (widgets) {
+            var queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
+//            console.log(fragment, queryString, scope);
+            var nodes = parent.querySelectorAll(queryString);
+            for (var i = 0, node; node = nodes[i]; i++) {
+                for (var j = 0, widget; (widget = widgets[j]); j++) {
+                    if (node.hasAttribute(widget.ns)) {
+                        widget(node, scope);
+                    }
+                }
+            }
+        }
+/*
 	    for (var step = prio; step <= decl.DATA; step++) {
 	        var queryString = "";
 	        for ( var ns in widgets[step]) {
@@ -95,7 +169,7 @@ function loadData() {
                 }
             }
 	    }
-	    
+*/    
 	    if (!hasParent) {
 	        parent.removeChild(fragment);
 	    }
@@ -149,6 +223,18 @@ function loadData() {
 	};
 
 	/**
+	 * Creates a scope including prototype.
+	 *
+	 * @param {Object} proto
+	 * @returns {Object} Scope with proto as prototype.
+	 */
+    decl.scope = function(proto) {
+        function Scope() {}
+        Scope.prototype = proto;
+        return new Scope();
+    };
+
+	/**
 	 * Prepare array with some listeners.
 	 * 
 	 * @param {Array} a The array needs to be prepared.
@@ -184,10 +270,11 @@ function loadData() {
 
     domLoaded(function() {
 		// 1st stage
-        var scope = {};
+//        var scope = {};
 		var nodes = document.querySelectorAll("[decl]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
-            decl.compile.call(scope, node);
+//            decl.compile.call(scope, node);
+            decl.prepare(document.body, decl.scope(window), [decl.INIT, decl.STRUC, decl.DATA])
 		}
     });
 

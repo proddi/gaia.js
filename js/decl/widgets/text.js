@@ -5,8 +5,8 @@
  *   Just resolves data, not binding.
  */
 
-decl.widget("text", function(node) {
+decl.widget("text", function(node, scope) {
     var attrib = node.getAttribute("text");
     node.removeAttribute("text");
-    node.innerText = decl.solve(window, attrib);
+    node.innerText = decl.solve(scope, attrib);
 }, decl.DATA);

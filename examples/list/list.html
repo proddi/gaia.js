@@ -64,28 +64,48 @@
          name: "Unter den Linden 23",
          description: "10117 Berlin, Germany",
          distance: "2.9 mi"
+//         tags: [{t:"Tourists"}, {t:"Building"}, {t:"Berlin"}]
      }, {
          type: "station",
          name: "Unter den Linden/Friedrichstrasse",
          description: "Berlin",
          distance: "2.9 mi"
+//         tags: [{t:"U-Bahn"}, {t:"Eating"}, {t:"Crowded"}]
      }, {
          type: "address",
          name: "Jannowitzbrücke",
          description: "Stralauerstraße",
          distance: "4.1 mi"
+//         tags: [{t:"Clubbing"}, {t:"S-Bahn"}, {t:"Berlin"}]
      }];
 </script>
 <body decl>
+    <h2>Repeating atom without binding (var b) - simple template</h2>
+    <ul>
+        <li repeat="a in $b=[1,2,3,4,5]" text="a"></li>
+    </ul>
+
+    <h2>Repeating atom without binding (var b) - complex template</h2>
+    <div>
+        <span repeat="a in $b=[1,2,3,4,5]">
+            #<span text="a"></span>, 
+        </span<>
+    </div>
+
     <h2>Repeating object without binding (var b) - simple <span>template</span></h2>
     <ul class="poi">
-        <li repeat="poi in pois" use="poilistitem"></li>
+        <li repeat="poi in pois" use="poilistitem" onclick="pois.$remove(poi)">foo
+            <span class="name" bind="poi.name">span1</span>
+            <span class="desc" bind="poi.description">span2</span>
+            <span class="dist" bind="poi.distance">span3</span>
+        </li>
     </ul>
+    <button onclick='pois.$add({name:"Nokia House 1", description: "Invalidenstrasse 117", distance: "23m"});'>Add</button>
     <li template="poilistitem">
-        <div class="icon" eval="this.style.backgroundImage = 'url(images/' + poi.type + '.png)'"></div>
-        <span class="name" bind="poi.name"></span>
-        <span class="desc" bind="poi.description"></span>
-        <span class="dist" bind="poi.distance"></span>
+        <div class="icon" eval="this.style.backgroundImage = 'url(images/' + poi.type + '.png)'">div1</div>
+        <span class="name" bind="poi.name">span1</span>
+        <span class="desc" bind="poi.description">span2</span>
+        <span class="dist" bind="poi.distance">span3</span>
     </li>
 </body>
 </html>
