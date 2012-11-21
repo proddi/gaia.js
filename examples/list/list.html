@@ -95,9 +95,6 @@
     <h2>Repeating object without binding (var b) - simple <span>template</span></h2>
     <ul class="poi">
         <li repeat="poi in pois" use="poilistitem" onclick="pois.$remove(poi)">foo
-            <span class="name" bind="poi.name">span1</span>
-            <span class="desc" bind="poi.description">span2</span>
-            <span class="dist" bind="poi.distance">span3</span>
         </li>
     </ul>
     <button onclick='pois.$add({name:"Nokia House 1", description: "Invalidenstrasse 117", distance: "23m"});'>Add</button>

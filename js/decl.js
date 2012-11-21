@@ -83,9 +83,9 @@ function loadData() {
 	 * 
 	 * @param {DOMNode} fragment The fragment that needs to be prepared.
 	 * @param {Object} scope
-	 * @param {Number|Array} prio can be decl.INIT, decl.STRUC, decl.DATA or like [decl.INIT, decl.STRUC]
+	 * @param {Boolean} init Run INIT widgets
 	 */
-	decl.prepare = function(fragment, scope, prios) {
+	decl.prepare = function(fragment, scope, init) {
 	    var hasParent = !!fragment.parentNode;
 	    var parent;
 	    if (hasParent) {
@@ -95,15 +95,28 @@ function loadData() {
 	        parent.appendChild(fragment);
 	    }
 
-        // proceed structure (decl.STRUC)
-        var widgets = decl.widgets(decl.STRUC)
+        var widgets
           , widget
           , node
           , i
-          , left = 100
           , queryString
           ;
-        if (widgets) {
+        // proceed init (decl.INIT)
+        if ((widgets = decl.widgets(decl.INIT))) {
+            queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
+            var nodes = parent.querySelectorAll(queryString);
+            for (i = 0, node; node = nodes[i]; i++) {
+                for (var j = 0, widget; (widget = widgets[j]); j++) {
+                    if (node.hasAttribute(widget.ns)) {
+                        widget(node, scope);
+                    }
+                }
+            }
+        }
+
+        // proceed structure (decl.STRUC)
+        var left = 100;
+        if ((widgets = decl.widgets(decl.STRUC))) {
             queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
             while ((node = parent.querySelector(queryString))) {
                 for (i = 0; (widget = widgets[i]); i++) {
@@ -117,8 +130,7 @@ function loadData() {
         }
 
         // proceed data (decl.DATA)
-        widgets = decl.widgets(decl.DATA);
-        if (widgets) {
+        if ((widgets = decl.widgets(decl.DATA))) {
             queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
             var nodes = parent.querySelectorAll(queryString);
             for (i = 0, node; node = nodes[i]; i++) {
@@ -129,47 +141,7 @@ function loadData() {
                 }
             }
         }
-/*
 
-        var prio,
-            widgets;
-        while ((prio = prios.shift())) {
-            widgets = decl.widgets(prio);
-            while (widgets && (widget = widgets.shift())) {
-                console.log("-->", prio, widget.ns);
-            }
-        }
-/*
-
-        var widgets = decl.widgets(prio);
-        if (widgets) {
-            var queryString = widgets.map(function(w) { return "[" + w.ns + "]"; }).join(",");
-//            console.log(fragment, queryString, scope);
-            var nodes = parent.querySelectorAll(queryString);
-            for (var i = 0, node; node = nodes[i]; i++) {
-                for (var j = 0, widget; (widget = widgets[j]); j++) {
-                    if (node.hasAttribute(widget.ns)) {
-                        widget(node, scope);
-                    }
-                }
-            }
-        }
-/*
-	    for (var step = prio; step <= decl.DATA; step++) {
-	        var queryString = "";
-	        for ( var ns in widgets[step]) {
-	            queryString += (queryString ? ",[" : "[") + ns + "]";
-	        }
-            var nodes = parent.querySelectorAll(queryString);
-            for (var i = 0, node; node = nodes[i]; i++) {
-                for (ns in widgets[step]) {
-                    if (node.hasAttribute(ns)) {
-                        widgets[step][ns](node, scope);
-                    }
-                }
-            }
-	    }
-*/    
 	    if (!hasParent) {
 	        parent.removeChild(fragment);
 	    }
@@ -274,7 +246,7 @@ function loadData() {
 		var nodes = document.querySelectorAll("[decl]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
 //            decl.compile.call(scope, node);
-            decl.prepare(document.body, decl.scope(window), [decl.INIT, decl.STRUC, decl.DATA])
+            decl.prepare(document.body, decl.scope(window), true)
 		}
     });
 

@@ -14,6 +14,7 @@ decl.widget("repeat", function(node, scope) {
     var template = node.getAttribute("use");
     if (template) {
         node = decl.getTemplate(template) || node;
+    console.log("repeat -- using template", template, node);
     }
     var match = attrib.match(/^(\w*) in (.*)$/);
     // console.log("widget->repeat()", attrib, match);

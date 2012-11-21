@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="../js/decl.js"></script>
+	<title>Insert title here</title>
+    <style>
+        *[template] {
+            opacity: .33;
+        }
+        h2 {
+            margin: 16px 0 8px 0;
+            border-bottom: 2px solid #888;
+            background: #DDD;
+        }
+    </style>
+</head>
+<body decl2>
+
+    <h2>DOM traversing: {{ document.title }}</h2>
+    <div><div><div><div><div><div>
+        <span>foo</span> <span>bar</span>
+    </div></div></div></div></div></div>
+    <ul scope="foo">
+        <li repeat="a in $scopes.foo.bar" text="a"></li>
+    </ul>
+
+</body>
+<script>
+var modules = [];
+
+// prevents SCRIPT traverse
+modules.push(function(node, next) {
+    if ("SCRIPT" === node.nodeName) {
+        console.log("~ [noScript] prevents compiling of script node", node);
+        return;
+    }
+    next();
+});
+
+// fill #test nodes
+modules.push(function(node, next) {
+    next();
+    if (1 === node.nodeType && "SPAN" === node.nodeName) {
+        return function(node) {
+            node.innerText = "*" + node.innerText + "*";
+        };
+    }
+});
+
+// traverser
+function traverser(node, path, linker) {
+        var nodes = [];
+        for (var i = node.children.length >>> 0; i--;) nodes[i] = node.children[i];
+        for (i = 0; (node = nodes[i]); i++ ) {
+            __compile(node, path.concat([i]), linker);
+        }
+};
+
+function __compile(node, path, linker) {
+    var i = 0
+      , allModules
+      , module
+      , fun
+      ;
+
+    function f() {
+        if ((module = modules[i++])) {
+            fun = module(node, function(fun) {
+                if (fun) linker(path, fun);
+                f();
+            });
+            if (fun) linker(path, fun);
+        } else {
+            traverser(node, path, linker);
+        }
+    }
+    f();
+}
+
+function compile(node) {
+    var links = [];
+
+    __compile(node, [], function(path, fun) {
+        console.log("~ linker.reg", path);
+        links.push([path, fun]);
+    });
+
+    return function(node, scope) {
+        for (var i=0, link; (link=links[i]); i++) {
+            var target = node;
+            for (var j=0, l=link[0].length; j<l; j++) {
+                target = target.children[link[0][j]];
+            }
+            link[1](target, scope);
+        }
+    };
+
+};
+
+var l = compile(document.body);
+</script>
+</html>

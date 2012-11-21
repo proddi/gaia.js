@@ -8,5 +8,6 @@
 decl.widget("eval", function(node) {
     var expr = node.getAttribute("eval");
     node.removeAttribute("eval");
-    eval("(function() { return " + expr + "; }).call(node);");
+    console.log("~ [eval]", "(function() { return " + expr + "; }).call(node);");
+//    eval("(function() { return " + expr + "; }).call(node);");
 }, decl.DATA);

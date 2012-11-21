@@ -19,6 +19,7 @@
 decl.widget("template", function(node) {
     var name = node.getAttribute("template");
     node.removeAttribute("template");
+    console.log("Registering template", name);
     decl.addTemplate(name, node);
     node.parentNode && node.parentNode.removeChild(node);
 }, decl.INIT);
