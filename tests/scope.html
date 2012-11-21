@@ -18,6 +18,9 @@
 <body decl2>
 
     <h2>DOM traversing: {{ document.title }}</h2>
+    <ul>
+        <li>Current URL: {{ document.URL }} (last modified: {{ document.lastModified }})</li>
+    </ul>
     <div><div><div><div><div><div>
         <span>foo</span> <span>bar</span>
     </div></div></div></div></div></div>
@@ -45,6 +48,23 @@ modules.push(function(node, next) {
         return function(node) {
             node.innerText = "*" + node.innerText + "*";
         };
+    }
+});
+
+// proceed {{ expressions }}
+var rx = /\{\{ (.*?) \}\}/g;
+modules.push(function(node, next) {
+    if (0 === node.children.length) {
+        var text = node.innerText;
+        if (rx.test(text)) {
+            return function(node, scope) {
+                node.innerHTML = text.replace(rx, function(all, match) {
+                    return "[" + decl.solve(scope, match) + "]";
+                });
+            };
+        }
+    } else {
+        next();
     }
 });
 
@@ -87,6 +107,7 @@ function compile(node) {
     });
 
     return function(node, scope) {
+        scope = scope || window;
         for (var i=0, link; (link=links[i]); i++) {
             var target = node;
             for (var j=0, l=link[0].length; j<l; j++) {
