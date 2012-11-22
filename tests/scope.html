@@ -3,7 +3,9 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="../js/decl.js"></script>
-	<title>Insert title here</title>
+    <script type="text/javascript" src="data.js"></script>
+    <link rel="stylesheet" href="list.css">
+	<title>compile me, link me, be happy!</title>
     <style>
         *[template] {
             opacity: .33;
@@ -21,12 +23,16 @@
     <ul>
         <li>Current URL: {{ document.URL }} (last modified: {{ document.lastModified }})</li>
     </ul>
-    <div><div><div><div><div><div>
-        <span>foo</span> <span>bar</span>
-    </div></div></div></div></div></div>
-    <ul scope="foo">
-        <li repeat="a in $scopes.foo.bar" text="a"></li>
+
+    <ul scope="foo" class="list">
+        <li repeat="city in cities">
+            <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
+            <span class="name">City #{{city.country}}</span>
+            <span class="desc">Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{tag}}">{{tag}}</a></span>
+            <span class="dist">{{city.distance}} mi</span>
+        </li>
     </ul>
+    <div scope="foo">Credits goes to: <span repeat="c in $['Foo', 'Bar', 'Nix']">{{c}} </span></div>
 
 </body>
 <script>
@@ -41,6 +47,60 @@ modules.push(function(node, next) {
     next();
 });
 
+// proceed repeat
+modules.push(function(node, next) {
+    if (node.hasAttribute("repeat")) {
+        var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
+        node.removeAttribute("repeat");
+        console.log("~ [repeat]", match);
+
+        if (!match || match.length !== 3) {
+            throw new Error("repeat needs 'x in y'");
+        }
+
+        var iterator = match[1]
+          , dataSet = match[2]
+          , linker = compile(node)
+          ;
+
+
+        dataSet = decl._prepareArray(dataSet);
+
+        return function(n, scope) {
+            // prepare iteration
+            var data = decl.solve(scope, dataSet);
+            data = decl._prepareArray(data);
+            var parentNode = n.parentNode;
+            parentNode.removeChild(n);
+
+            for ( var i = 0, l = data.length; i < l; i++) {
+                var clone = node.cloneNode(true);
+                var cloneScope = decl.scope(scope);
+                cloneScope[iterator] = data[i];
+                console.log("~ [repeat.linker]", data[i], "from", data, "as", iterator, "=", cloneScope, scope);
+                linker(clone, cloneScope);
+                parentNode.appendChild(clone);
+            }
+
+            data.$on("add", function(item) {
+                var clone = node.cloneNode(true);
+                var cloneScope = decl.scope(scope);
+                cloneScope[iterator] = item;
+                linker(clone, cloneScope);
+                parentNode.appendChild(clone);
+            });
+
+            data.$on("remove", function(item, idx) {
+                var node = parentNode.children[idx];
+                parentNode.removeChild(node);
+            });
+
+        };
+    } else {
+        next();
+    }
+});
+/*
 // fill #test nodes
 modules.push(function(node, next) {
     next();
@@ -50,17 +110,39 @@ modules.push(function(node, next) {
         };
     }
 });
-
+*/
 // proceed {{ expressions }}
-var rx = /\{\{ (.*?) \}\}/g;
 modules.push(function(node, next) {
+function decode(str) {
+     return str && unescape(str.replace(/\+/g, " "));
+}
     if (0 === node.children.length) {
-        var text = node.innerText;
-        if (rx.test(text)) {
+        var rx = /{{(.*?)}}/g
+          , text = node.innerText
+          , isText = undefined !== text && rx.test(text)
+          , href = node.href && decode(node.href)
+          , isHref = undefined !== href && rx.test(href)
+          , style = node.style.cssText && decode(node.style.cssText)
+          , proceedStyle = undefined !== style && rx.test(style)
+          ;
+          console.log("~ compile.expr", node, style);
+        if (isText || isHref || proceedStyle) {
             return function(node, scope) {
-                node.innerHTML = text.replace(rx, function(all, match) {
-                    return "[" + decl.solve(scope, match) + "]";
-                });
+                if (isText) {
+                    node.innerHTML = text.replace(rx, function(all, match) {
+                        return "<i>" + decl.solve(scope, match.trim()) + "</i>";
+                    });
+                }
+                if (isHref) {
+                    node.href = href.replace(rx, function(all, match) {
+                        return decl.solve(scope, match.trim());
+                    });
+                }
+                if (proceedStyle) {
+                    node.style.cssText = style.replace(rx, function(all, match) {
+                        return decl.solve(scope, match.trim());
+                    });
+                }
             };
         }
     } else {
@@ -79,7 +161,6 @@ function traverser(node, path, linker) {
 
 function __compile(node, path, linker) {
     var i = 0
-      , allModules
       , module
       , fun
       ;
@@ -99,6 +180,7 @@ function __compile(node, path, linker) {
 }
 
 function compile(node) {
+    console.log("~ compile", node);
     var links = [];
 
     __compile(node, [], function(path, fun) {
@@ -106,8 +188,10 @@ function compile(node) {
         links.push([path, fun]);
     });
 
+    // link function
     return function(node, scope) {
         scope = scope || window;
+        console.log("~ linker", node, scope, links);
         for (var i=0, link; (link=links[i]); i++) {
             var target = node;
             for (var j=0, l=link[0].length; j<l; j++) {
@@ -119,6 +203,6 @@ function compile(node) {
 
 };
 
-var l = compile(document.body);
+compile(document.body)(document.body);
 </script>
 </html>

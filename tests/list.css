@@ -1,0 +1,49 @@
+.list {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid #b3b3b3;
+}
+.list li {
+    position: relative;
+    display: block;
+    height: 64px;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#efefef), to(#e8e8e8));
+    border-top: 1px solid #b3b3b3;
+}
+.list .icon {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    height: 50px;
+    width: 50px;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+.list .name {
+    position: absolute;
+    top: 9px;
+    left: 62px;
+    right: 70px;
+    font-size: 18px;
+}
+.list .desc {
+    position: absolute;
+    top: 39px;
+    left: 62px;
+    right: 70px;
+    font-size: 18px;
+    color: #888;
+}
+.list .dist {
+    position: absolute;
+    top: 25px;
+    right: 10px;
+    color: #888;
+}
+.list .tag {
+    background: #99B;
+    border-radius: 3px;
+    margin: 2px;
+    padding: 1px 3px;
+}
+
