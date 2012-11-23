@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="../js/decl.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+    <link rel="stylesheet" href="list.css">
+	<title>parse me, link me, be happy!</title>
+</head>
+<body>
+
+</body>
+<script>
+// expression | filter | filter(expression)
+var Expression = function(s) {
+    this.s = s;
+
+    var fun = this.parseExpression()
+           || function(scope, value) { return "Unknown expression: " + s; }
+
+    var filters = [],
+        filter;
+    while (filter = this.parseFilter()) filters.push(filter);
+
+    return function(scope) {
+        var value = fun(scope);
+        for (var i=0, l=filters.length; i<l; i++) {
+            value = filters[i].call(scope, value);
+        }
+        return value;
+    };
+};
+
+Expression.prototype.parseExpression = function() {
+    this.s = this.s.trim();
+// console.log("~ parse:", '"'+this.s+'"');
+    return (this.parseObjectPath()
+            || this.parseNumber()
+            || this.parseString());
+}
+
+Expression.prototype.parseNumber = function() {
+    var match = /^([\d]+)/.exec(this.s);
+    if (match) {
+        this.s = this.s.substr(match[0].length);
+        var value = parseFloat(match[1]);
+        return function(scope, prev) {
+            return value;
+        }
+    }
+};
+
+Expression.prototype.parseString = function() {
+    var match = /"(.*?)"/.exec(this.s); // needs to be improved
+    if (match) {
+        this.s = this.s.substr(match[0].length);
+        var value = match[1];
+        return function(scope, prev) {
+            return value;
+        }
+    }
+    var match = /'(.*?)'/.exec(this.s); // needs to be improved
+    if (match) {
+        this.s = this.s.substr(match[0].length);
+        var value = match[1];
+        return function(scope, prev) {
+            return value;
+        }
+    }
+};
+
+Expression.prototype.parseObjectPath = function() {
+    var match = /^([A-Z-a-z_][\w\.]*)/.exec(this.s);
+    if (match) {
+        this.s = this.s.substr(match[0].length);
+        var pieces = match[1].split(".");
+        return function(scope, prev) {
+            for (var i=0, l=pieces.length; i<l; i++) scope = scope[pieces[i]];
+            return scope;
+        }
+    }
+};
+
+Expression.prototype.isChar = function(c) {
+    if (c === this.s.charAt(0)) {
+        this.s = this.s.substr(1);
+        return true;
+    }
+}
+
+Expression.prototype.parseFilter = function() {
+    var match = /^ *\| ?(\w+)/.exec(this.s);
+    if (match) {
+        this.s = this.s.substr(match[0].length);
+        var filter = this.filters[match[1]];
+        if (!filter) throw 'Filter "' + match[1] + '" doesn\'t exist.';
+        var params = [undefined];
+        // additional params?
+        if (this.isChar("(")) {
+            params.push(this.parseExpression());
+            while (this.isChar(",")) params.push(this.parseExpression());
+            if (!this.isChar(")")) throw "filter parameters not closed: " + this.s;
+        }
+        return function(value) {
+            params[0] = value;
+            var scope = this;
+            return filter.apply(this, params.map(function(param, i) { return i ? param(scope) : param; }));
+        }
+    }
+};
+
+Expression.prototype.filters = {
+    upper: function(value) {
+        return value.toUpperCase();
+    },
+    lower: function(value) {
+        return value.toLowerCase();
+    },
+    arg: function(value, arg) {
+        console.log("~ [arg]", value, arguments);
+        return value.replace(/\$/, arg);
+    }
+};
+
+var data = {
+    name: "Joe",
+    user: {
+        name: "John Doe"
+    }
+};
+console.log("42 =", new Expression("42")(data));
+console.log("user.name =", new Expression("user.name")(data));
+console.log("'user.name' =", new Expression("'user.name'")(data));
+console.log('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, "42") =', new Expression('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, "42")')(data));
+</script>
+</html>
