@@ -22,6 +22,7 @@ var Expression = function(s) {
         filter;
     while (filter = this.parseFilter()) filters.push(filter);
 
+    if (this.s) console.warn("~ Couldn't parse complete expression:", this.s);
     return function(scope) {
         var value = fun(scope);
         for (var i=0, l=filters.length; i<l; i++) {
@@ -31,10 +32,18 @@ var Expression = function(s) {
     };
 };
 
+Expression.prototype.isChar = function(c) {
+    if (c === this.s.charAt(0)) {
+        this.s = this.s.substr(1);
+        return true;
+    }
+}
+
 Expression.prototype.parseExpression = function() {
     this.s = this.s.trim();
 // console.log("~ parse:", '"'+this.s+'"');
-    return (this.parseObjectPath()
+    return (this.parseFunction()
+            || this.parseObjectPath()
             || this.parseNumber()
             || this.parseString());
 }
@@ -64,6 +73,7 @@ Expression.prototype.parseString = function() {
         this.s = this.s.substr(match[0].length);
         var value = match[1];
         return function(scope, prev) {
+//            console.log("~ string:", scope);
             return value;
         }
     }
@@ -81,12 +91,26 @@ Expression.prototype.parseObjectPath = function() {
     }
 };
 
-Expression.prototype.isChar = function(c) {
-    if (c === this.s.charAt(0)) {
-        this.s = this.s.substr(1);
-        return true;
+Expression.prototype.parseFunction = function() {
+    var match = /^([A-Z-a-z_][\w\.]*)\(/.exec(this.s);
+    if (match) {
+        this.s = this.s.substr(match[0].length);
+        var fun = match[1],
+            params = [];
+        if (!this.isChar(")")) {
+            do {
+                params.push(this.parseExpression());
+            } while (this.isChar(","));
+            if (!this.isChar(")")) throw "function parameters not closed: " + this.s;
+        }
+
+        return function(scope, prev) {
+            var that = this;
+//            console.log("~ fun.exec", scope, params);
+            return scope[fun].apply(scope, params.map(function(param) { return param(scope); }));
+        }
     }
-}
+};
 
 Expression.prototype.parseFilter = function() {
     var match = /^ *\| ?(\w+)/.exec(this.s);
@@ -126,11 +150,13 @@ var data = {
     name: "Joe",
     user: {
         name: "John Doe"
-    }
+    },
+    fun: function(arg) { return "["+arg+"]";}
 };
 console.log("42 =", new Expression("42")(data));
 console.log("user.name =", new Expression("user.name")(data));
 console.log("'user.name' =", new Expression("'user.name'")(data));
-console.log('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, "42") =', new Expression('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, "42")')(data));
+console.log('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, fun("42")) =', new Expression('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, fun("42"))')(data));
+console.log('fun(fun("poohh")) | upper =', new Expression('fun(fun("poohh")) | upper')(data));
 </script>
 </html>
