@@ -14,6 +14,7 @@
 // expression | filter | filter(expression)
 var Expression = function(s) {
     this.s = s;
+    this.bindings = [];
 
     var fun = this.parseExpression()
            || function(scope, value) { return "Unknown expression: " + s; }
@@ -23,7 +24,7 @@ var Expression = function(s) {
     while (filter = this.parseFilter()) filters.push(filter);
 
     if (this.s) console.warn("~ Couldn't parse complete expression:", this.s);
-    return function(scope) {
+    this.exec = function(scope) {
         var value = fun(scope);
         for (var i=0, l=filters.length; i<l; i++) {
             value = filters[i].call(scope, value);
@@ -84,6 +85,7 @@ Expression.prototype.parseObjectPath = function() {
     if (match) {
         this.s = this.s.substr(match[0].length);
         var pieces = match[1].split(".");
+        this.bindings.push(pieces);
         return function(scope, prev) {
             for (var i=0, l=pieces.length; i<l; i++) scope = scope[pieces[i]];
             return scope;
@@ -141,7 +143,7 @@ Expression.prototype.filters = {
         return value.toLowerCase();
     },
     arg: function(value, arg) {
-        console.log("~ [arg]", value, arguments);
+//        console.log("~ [arg]", value, arguments);
         return value.replace(/\$/, arg);
     }
 };
@@ -153,10 +155,16 @@ var data = {
     },
     fun: function(arg) { return "["+arg+"]";}
 };
-console.log("42 =", new Expression("42")(data));
-console.log("user.name =", new Expression("user.name")(data));
-console.log("'user.name' =", new Expression("'user.name'")(data));
-console.log('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, fun("42")) =', new Expression('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, fun("42"))')(data));
-console.log('fun(fun("poohh")) | upper =', new Expression('fun(fun("poohh")) | upper')(data));
+
+function execute(expr, data) {
+    var e = new Expression(expr);
+    console.log("execute:", '"' + expr + '"',"==>", e.exec(data), "- Bindings:", e.bindings);
+}
+
+execute("42", data);
+execute("user.name | arg(name)", data);
+execute("'user.name'", data);
+execute('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, fun("42"))', data);
+execute('fun(fun("poohh")) | upper', data);
 </script>
 </html>
