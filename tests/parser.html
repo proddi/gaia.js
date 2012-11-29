@@ -1,54 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="../js/decl.js"></script>
     <script type="text/javascript" src="data.js"></script>
     <link rel="stylesheet" href="list.css">
-	<title>parse me, link me, be happy!</title>
+    <title>parse me, link me, be happy!</title>
 </head>
 <body>
+<pre>
+user.bar.foo
+user.bar.foo()
+user.bar.foo["bar"]
+
+foo
+foo()
+foo["bar"]
+
+--->
+check for "foo(...)"
+check for "foo[...]"
+check for "foo"
+
+if "." do it again
+</pre>
+
 
 </body>
 <script>
 // expression | filter | filter(expression)
 
-var ExecutedExpression = function(expression, fun, filters) {
+var ExecutedExpression = function(expression, fun) {
     this.expression = expression;
 }
 
 var Expression = function(s) {
     this.s = s;
-    this.bindings = [];
+    this.len = s.length;
 
-    var fun = this.parseExpression()
-           || function(scope, value) { return "Unknown expression: " + s; }
+    var fun = this.parseExpression(true)
+     || this.parseEOL()
+      ;
 
-    var filters = [],
-        filter;
-    while (filter = this.parseFilter()) filters.push(filter);
-
-    if (this.s) console.warn("~ Couldn't parse complete expression:", this.s);
-    function evaluate(scope) {
-        var value = fun.call(this, scope, undefined);
-        for (var i=0, l=filters.length; i<l; i++) {
-            value = filters[i].call(this, value);
-        }
-        return value;
-    };
+    if (this.s) {
+        var syntax = this.s;
+        fun = function() {
+            return new SyntaxError("Unexpected token " + '"' + syntax + '" in "' + s + '"');
+        };
+    }
     
     var expr = this;
-    return function(scope, update) {
-        if (!update) return evaluate.call({}, scope);
-        var ctx = new ExecutedExpression(expr);
-        ctx.update = function() {
-            update(evaluate.call({}, scope));
+    return function(data, update) {
+        if (!update) return fun.call({}, data);
+        var scope = new ExecutedExpression(expr);
+        scope.data = data;
+        scope.update = function() {
+            update(fun.call({}, data));
         };
-        ctx.exec = function() {
-            return evaluate.call({}, scope);
+        scope.exec = function() {
+            return fun.call({}, data);
         };
-        update(evaluate.call(ctx, scope));
-        return ctx;
+        update(fun.call(scope, data));
+        return scope;
     };
 };
 
@@ -59,82 +72,143 @@ Expression.prototype.isChar = function(c) {
     }
 }
 
-Expression.prototype.parseExpression = function() {
-    this.s = this.s.trim();
-    return (this.parseFunction()
-            || this.parseObjectPath()
-            || this.parseNumber()
-            || this.parseString());
+Expression.prototype.isPos = function(pos) {
+    return (this.len - pos) === this.s.length;
 }
+
+Expression.prototype.parseExpression = function(trimming) {
+    if (trimming) {
+        this.s = this.s.trim();
+        this.lenBack = this.len;
+        this.len = this.s.length;
+    }
+
+//    console.log("~ parseExpression:", '"' + this.s + '"', trimming);
+    var fun = (
+            this.parseFunction()
+         || this.parseMember()
+         || this.parseNumber()
+         || this.parseString()
+         || this.parseDotOperator()
+         || this.parseArray()
+         || this.parseFilter()
+        );
+
+//    console.log("~ parseExpression.end:", '"' + this.s + '"');
+    if (fun && this.s) {
+//    console.log("~ parseExpression.end2:", '"' + this.s + '"');
+        var nextFun = this.parseExpression();
+        if (nextFun) {
+            if (trimming) this.len = this.lenBack;
+            return function(value) {
+                return nextFun.call(this, fun.call(this, value));
+            }
+        }
+    }
+
+    if (trimming) this.len = this.lenBack;
+    return fun;
+}
+
+Expression.prototype.parseDotOperator = function() {
+    if (this.isChar(".")) {
+        return this.parseExpression();
+    }
+};
 
 Expression.prototype.parseNumber = function() {
     var match = /^([\d]+)/.exec(this.s);
     if (match) {
         this.s = this.s.substr(match[0].length);
         var value = parseFloat(match[1]);
-        return function(scope, prev) {
-//            console.log("~ parseNumber", this, scope, prev);
+//        console.log("~ parseNumber:", value, this.s);
+        return function() {
             return value;
         }
     }
 };
 
 Expression.prototype.parseString = function() {
-    var match = /"(.*?)"/.exec(this.s); // needs to be improved
+    var match = /^"(.*?)"/.exec(this.s); // needs to be improved
     if (match) {
         this.s = this.s.substr(match[0].length);
         var value = match[1];
-        return function(scope, prev) {
+//        console.log("~ parseString:", '"' + value + '"', this.s);
+        return function() {
             return value;
         }
     }
-    var match = /'(.*?)'/.exec(this.s); // needs to be improved
+    var match = /^'(.*?)'/.exec(this.s); // needs to be improved
     if (match) {
         this.s = this.s.substr(match[0].length);
         var value = match[1];
-        return function(scope, prev) {
-//            console.log("~ string:", scope);
+//        console.log("~ parseString:", "'" + value + "'", this.s);
+        return function() {
             return value;
         }
     }
 };
 
-Expression.prototype.parseObjectPath = function() {
-    var match = /^([A-Z-a-z_][\w\.]*)/.exec(this.s);
+Expression.prototype.parseArray = function() {
+    if (this.isChar("[")) {
+        if (this.isPos(1)) {
+            // declaring an array
+            var elements = [];
+            do {
+                elements.push(this.parseExpression(true) || function() {});
+            } while (this.isChar(","));
+            if (!this.isChar("]")) throw "array isn't closed: " + this.s;
+            return function() {
+                var that = this;
+                return elements.map(function(el) { return el.call(that, that.data); });
+            }
+        } else {
+            // selector
+            var keyFun = this.parseExpression();
+            if (!this.isChar("]")) throw "array isn't closed: " + this.s;
+            return function(data) {
+                return data[keyFun.call(this, this.data)];
+            }
+        }
+    }
+};
+
+Expression.prototype.parseMember = function() {
+    var match = /^([A-Z-a-z_][\w]*)/.exec(this.s);
     if (match) {
         this.s = this.s.substr(match[0].length);
-        var pieces = match[1].split(".");
-        this.bindings.push(pieces);
-        return function(scope, prev) {
-            for (var i=0, l=pieces.length; i<l; i++) scope = scope[pieces[i]];
-            return scope;
+        var member = match[1];
+//        console.log("~ parseMember:", member, '"' + this.s + '"');
+        return function(data) {
+            return data[member];
         }
     }
 };
 
 Expression.prototype.parseFunction = function() {
-    var match = /^([A-Z-a-z_][\w\.]*)\(/.exec(this.s);
+    var match = /^([A-Z-a-z_][\w]*)\(/.exec(this.s);
     if (match) {
         this.s = this.s.substr(match[0].length);
         var fun = match[1],
             params = [];
         if (!this.isChar(")")) {
             do {
-                params.push(this.parseExpression());
+                params.push(this.parseExpression(true) || function() {});
             } while (this.isChar(","));
             if (!this.isChar(")")) throw "function parameters not closed: " + this.s;
         }
 
-        return function(scope, prev) {
+//        console.log("~ parseFunction:", fun, params, this.s);
+        return function(data) {
             var that = this;
-//            console.log("~ fun.exec", this, fun, scope, prev, params);
-            return scope[fun].apply(this, params.map(function(param, i) { return param(scope, undefined); }));
+            console.log("~ fun.exec", this, fun, data, params);
+            return data[fun].apply(this, params.map(function(param, i) { return param.call(that, that.data); }));
         }
     }
 };
 
 Expression.prototype.parseFilter = function() {
-    var match = /^ *\| ?(\w+)/.exec(this.s);
+    var match = /^ *\| *([A-Z-a-z_][\w]*)/.exec(this.s);
     if (match) {
         this.s = this.s.substr(match[0].length);
         var filter = this.filters[match[1]];
@@ -142,17 +216,29 @@ Expression.prototype.parseFilter = function() {
         var params = [undefined];
         // additional params?
         if (this.isChar("(")) {
-            params.push(this.parseExpression());
-            while (this.isChar(",")) params.push(this.parseExpression());
+            do {
+                params.push(this.parseExpression(true) || function() {});
+            } while (this.isChar(","));
             if (!this.isChar(")")) throw "filter parameters not closed: " + this.s;
         }
-        return function(value) {
-            params[0] = value;
-            var scope = this;
-            return filter.apply(this, params.map(function(param, i) { return i ? param(scope, undefined) : param; }));
+
+//        console.log("~ parseFilter:", filter, params, '"' + this.s + '"');
+        return function(data) {
+            var that = this;
+            params[0] = data;
+            return filter.apply(this, params.map(function(param, i) { return i ? param.call(that, that.data) : param; }));
         }
     }
 };
+
+Expression.prototype.parseEOL = function() {
+    var line = this.s;
+    this.s = "";
+    return function(data) {
+        console.error("Syntax error near " + '"' + line + '"');
+        return "Syntax error near " + '"' + line + '"';
+    };
+}
 
 Expression.prototype.filters = {
     upper: function(value) {
@@ -176,7 +262,14 @@ Expression.prototype.filters = {
 var data = {
     name: "Joe",
     user: {
-        name: "John Doe"
+        name: "John Doe",
+        bar: {
+            arr: ["one", "two", "three"],
+            obj: { foo: "bar" },
+            fun: function(arg1, arg2) { return ["fun-function", arg1, arg2].join(","); },
+            i: 42,
+            str: "a string"
+        }
     },
     fun: function(arg) { return "["+arg+"]";},
     time: function() {
@@ -188,9 +281,9 @@ var data = {
 function execute(expr, data) {
     var e = new Expression(expr);
     var eb = e(data, function(value) {
-        console.log("~ execute.onUpdate:", '"' + expr + '"'," ==> ", value);
+        console.log("~ execute.onUpdate:", '"' + expr + '"'," ==> ", "" + value);
     });
-    console.log("~ execute:", '"' + expr + '"',"==>", eb, "- Bindings:", eb.exec());
+//    console.log("~ execute:", '"' + expr + '"',"==>", eb, eb.exec());
 }
 
 execute("42", data);
@@ -198,6 +291,8 @@ execute("42", data);
 //execute("'user.name'", data);
 //execute('"Hello $ and $!" | upper | arg(name) | arg(user.name, 42, fun("42"))', data);
 //execute('fun(fun("poohh")) | upper', data);
-execute('time() | date("fullDate")', data);
+//execute('time() | date("fullDate")', data);
+execute('user.bar.obj["foo"]*', data);
+execute('["foo", user.bar["str"]|upper]', data);
 </script>
 </html>
