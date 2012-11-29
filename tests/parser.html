@@ -16,8 +16,6 @@
 var ExecutedExpression = function(expression, fun, filters) {
     this.expression = expression;
 }
-ExecutedExpression.prototype.update = function() {
-}
 
 var Expression = function(s) {
     this.s = s;
@@ -44,9 +42,10 @@ var Expression = function(s) {
         if (!update) return evaluate.call({}, scope);
         var ctx = new ExecutedExpression(expr);
         ctx.update = function() {
-        
-//                console.log("scope.update", scope);
             update(evaluate.call({}, scope));
+        };
+        ctx.exec = function() {
+            return evaluate.call({}, scope);
         };
         update(evaluate.call(ctx, scope));
         return ctx;
@@ -74,7 +73,7 @@ Expression.prototype.parseNumber = function() {
         this.s = this.s.substr(match[0].length);
         var value = parseFloat(match[1]);
         return function(scope, prev) {
-            console.log("~ parseNumber", this, scope, prev);
+//            console.log("~ parseNumber", this, scope, prev);
             return value;
         }
     }
@@ -188,10 +187,10 @@ var data = {
 
 function execute(expr, data) {
     var e = new Expression(expr);
-    var value = e(data, function(value) {
+    var eb = e(data, function(value) {
         console.log("~ execute.onUpdate:", '"' + expr + '"'," ==> ", value);
     });
-    console.log("~ execute:", '"' + expr + '"',"==>", value, "- Bindings:", e.bindings);
+    console.log("~ execute:", '"' + expr + '"',"==>", eb, "- Bindings:", eb.exec());
 }
 
 execute("42", data);
