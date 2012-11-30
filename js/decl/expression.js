@@ -16,7 +16,7 @@ var Expression = function(s) {
             return new SyntaxError("Unexpected token " + '"' + syntax + '" in "' + s + '"');
         };
     }
-    
+
     var expr = this;
     return function(data, update) {
         if (!update) return fun.call({}, data);
@@ -127,7 +127,7 @@ Expression.prototype.parseArray = function() {
             if (!this.isChar("]")) throw "array isn't closed: " + this.s;
             return function() {
                 var that = this;
-                return elements.map(function(el) { return el.call(that, that.data); });
+                return elements.map(function(el) {return el.call(that, that.data);});
             }
         } else { // selector
             var keyFun = this.parseExpression();
@@ -168,7 +168,7 @@ Expression.prototype.parseFunction = function() {
         return function(data) {
             var that = this;
 //            console.log("~ fun.exec", this, fun, data, params);
-            return data[fun].apply(this, params.map(function(param, i) { return param.call(that, that.data); }));
+            return data[fun].apply(this, params.map(function(param, i) {return param.call(that, that.data);}));
         }
     }
 };
@@ -192,7 +192,7 @@ Expression.prototype.parseFilter = function() {
         return function(data) {
             var that = this;
             params[0] = data;
-            return filter.apply(this, params.map(function(param, i) { return i ? param.call(that, that.data) : param; }));
+            return filter.apply(this, params.map(function(param, i) {return i ? param.call(that, that.data) : param;}));
         }
     }
 };
@@ -220,11 +220,87 @@ Expression.prototype.filters = {
     json: function(data) {
         return JSON.stringify(data);
     },
-    date: function(value) {
-        var format = {
+    join: function(data, sep) {
+        return data.join(sep);
+    },
+    date: function(value, format) {
+        var date = new Date(value)
+          , x = ["ap", "AP", "mm", "m", "hh", "h", "ss", "s", "yyyy", "yy", "zzz", "z", "dddd", "ddd", "dd", "d", "MMMM", "MMM", "MM", "M"]
+          ;
+        var s = {
             fullDate: "EEEE, MMMM d,y"
-        }[value] || value;
-        return Date(value).toString();
+        }[format] || format || "ddd MMMM d yy - h:m:s ap";
+        return x.reduce(function(s, token) {return s.replace(token, date[token]());}, s);
     }
 };
 
+// Precondition: n.length <= len <= 7
+var zeroPad = function(n, len) {return ('000000' + n).slice(-len);}
+
+Date.prototype.d = function() { // the month as number without a leading zero (1-12)
+    return this.getDay();
+}
+Date.prototype.dd = function() { // the month as number with a leading zero (01-12)
+    return zeroPad(this.getDay(), 2);
+}
+Date.prototype.ddd = function() { // the abbreviated localized month name (e.g. 'Jan' to 'Dec')
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][this.getDay()];
+}
+Date.prototype.dddd = function() { // the long localized month name (e.g. 'January' to 'December')
+    return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][this.getDay()];
+}
+Date.prototype.M = function() { // the month as number without a leading zero (1-12)
+    return this.getMonth();
+}
+Date.prototype.MM = function() { // the month as number with a leading zero (01-12)
+    return zeroPad(this.getMonth(), 2);
+}
+Date.prototype.MMM = function() { // the abbreviated localized month name (e.g. 'Jan' to 'Dec')
+    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][this.getMonth()];
+}
+Date.prototype.MMMM = function() { // the long localized month name (e.g. 'January' to 'December')
+    return ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][this.getMonth()];
+}
+Date.prototype.yy = function() { // the year as two digit number (00-99)
+    return zeroPad(this.getFullYear() % 100, 2);
+}
+Date.prototype.yyyy = function() { // the year as four digit number
+    return zeroPad(this.getFullYear(), 4);
+}
+Date.prototype.ap = function() {
+    this._isAP = true;
+    return this.getHours() < 12 ? "am" : "pm";
+}
+Date.prototype.AP = function() {
+    return this.ap().toUpperCase();
+}
+
+Date.prototype.h = function() { // the hour without a leading zero (0 to 23 or 1 to 12 if AM/PM display)
+    var h = this.getHours();
+    if (this._isAP) {
+        if (0 === h) h = 12;
+        else if (h > 12) h -= 12;
+    }
+    return h;
+}
+Date.prototype.hh = function() { // the hour without a leading zero (0 to 23 or 1 to 12 if AM/PM display)
+    return zeroPad(this.h(), 2);
+}
+Date.prototype.m = function() { // the minute without a leading zero (0 to 59)
+    return this.getMinutes();
+}
+Date.prototype.mm = function() { // the minute with a leading zero (00 to 59)
+    return zeroPad(this.getMinutes(), 2);
+}
+Date.prototype.s = function() { // the second without a leading zero (0 to 59)
+    return zeroPad(this.getSeconds(), 2);
+}
+Date.prototype.ss = function() { // the second with a leading zero (00 to 59)
+    return zeroPad(this.getSeconds(), 2);
+}
+Date.prototype.z = function() { // the milliseconds without leading zeroes (0 to 999)
+    return this.getMilliseconds();
+}
+Date.prototype.zzz = function() { // the milliseconds with leading zeroes (000 to 999)
+    return zeroPad(this.getMilliseconds(), 3);
+}

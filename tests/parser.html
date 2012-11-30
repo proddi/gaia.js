@@ -9,11 +9,10 @@
     <title>parse me, link me, be happy!</title>
 </head>
 <body>
-    <pre>
-        open console
-    </pre>
-</body>
-<script>
+<pre>
+    open console
+</pre>
+<script type="text/javascript">
 var data = {
     name: "Joe",
     user: {
@@ -51,4 +50,5 @@ execute('user.bar.obj|json', data);
 execute('["foo", user.bar["str"]|upper]', data);
 execute('["foo", "str"][2]', data);
 </script>
+</body>
 </html>

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="../js/decl.js"></script>
+    <script type="text/javascript" src="../js/decl/expression.js"></script>
     <script type="text/javascript" src="data.js"></script>
     <link rel="stylesheet" href="list.css">
-	<title>compile me, link me, be happy!</title>
+    <title>compile me, link me, be happy!</title>
     <style>
         *[template] {
             opacity: .33;
@@ -28,13 +29,22 @@
         <li repeat="city in cities">
             <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
             <span class="name">City #{{city.country}}</span>
-            <span class="desc">Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{tag}}">{{tag}}</a></span>
+            <span class="desc">Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{ tag }}">{{ tag }}</a></span>
             <span class="dist">{{city.distance}} mi</span>
         </li>
     </ul>
-    <div scope="foo">Credits goes to: <span repeat="c in $['Foo', 'Bar', 'Nix']">{{c}} </span></div>
-
+    <div scope="foo">Credits goes to: {{ ['Foo', 'Bar', 'Nix'] | join(" / ") }}, current time: {{ time() | date }}</div>
+    <div>dd.MM.yyyy - {{ time() | date("dd.MM.yyyy")}}</div>
+    <div>ddd MMMM d yy - {{ time() | date("ddd MMMM d yy")}}</div>
+    <div>hh:mm:ss.zzz - {{ time() | date("hh:mm:ss.zzz")}}</div>
+    <div>h:m:s ap - {{ time() | date("h:m:s ap")}}</div>
 </body>
+<script>
+    window.time = function() {
+        if (this.update) setInterval(this.update, 1000);
+        return +new Date();
+    };
+</script>
 <script>
 var modules = [];
 
@@ -113,25 +123,34 @@ modules.push(function(node, next) {
 */
 // proceed {{ expressions }}
 modules.push(function(node, next) {
-function decode(str) {
-     return str && unescape(str.replace(/\+/g, " "));
-}
+    function decode(str) {
+         return str && unescape(str.replace(/\+/g, " "));
+    }
     if (0 === node.children.length) {
         var rx = /{{(.*?)}}/g
           , text = node.innerText
           , isText = undefined !== text && rx.test(text)
+          , textPieces = undefined !== text && text.split(rx).map(function(piece, i) { return i%2 ? new Expression(piece) : piece })
           , href = node.href && decode(node.href)
           , isHref = undefined !== href && rx.test(href)
           , style = node.style.cssText && decode(node.style.cssText)
           , proceedStyle = undefined !== style && rx.test(style)
           ;
-          console.log("~ compile.expr", node, style);
+          console.log("~ compile.expr", node, style, textPieces);
         if (isText || isHref || proceedStyle) {
             return function(node, scope) {
                 if (isText) {
-                    node.innerHTML = text.replace(rx, function(all, match) {
-                        return "<i>" + decl.solve(scope, match.trim()) + "</i>";
+                    var text = textPieces.slice();
+                    textPieces.forEach(function(piece, i) {
+                        if (piece instanceof Function) piece(scope, function(value) {
+                            text[i] = value;
+                            node.innerHTML = text.join("");
+                        });
                     });
+//                    node.innerHTML = textPieces.map(function(piece) { return piece instanceof Function ? piece(scope) : piece }).join("");
+//                    node.innerHTML = text.replace(rx, function(all, match) {
+//                        return "<i>" + decl.solve(scope, match.trim()) + "</i>";
+//                    });
                 }
                 if (isHref) {
                     node.href = href.replace(rx, function(all, match) {
