@@ -159,6 +159,11 @@ Expression.prototype.parseMember = function() {
         var member = match[1];
 //        console.log("~ parseMember:", member, '"' + this.s + '"');
         var f = function(data) {
+            if (gaia.$$update) {
+                data = decl._prepareArray(data);
+                decl.watch(data, member, gaia.$$update);
+                console.log("~ register update listener:", data + "." + member);
+            }
             return data && data[member] || undefined;
         }
         f.$set = function(data, value) {

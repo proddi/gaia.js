@@ -84,21 +84,21 @@ test("Expression test - filters", function() {
 
     // | lower
     equal(gaia.parse("'John' | lower")(), "john", "<string> | lower");
-    deepEqual(gaia.parse("['John', 'Doe', 42] | lower")(), ["john", "doe", 42], "<array> | lower");
+    deepEqual(gaia.parse("['John', 'Doe', 42] | lower")(), ["john", "doe", 42], "{array} | lower");
 
     // | upper
     equal(gaia.parse("'John' | upper")(), "JOHN", "<string> | upper");
-    deepEqual(gaia.parse("['John', 'Doe', 42] | upper")(), ["JOHN", "DOE", 42], "<array> | upper");
+    deepEqual(gaia.parse("['John', 'Doe', 42] | upper")(), ["JOHN", "DOE", 42], "{array} | upper");
 
     // | join
     deepEqual(gaia.parse("[42, 'bar'] | join")(), "42,bar", "<array> | join");
-    deepEqual(gaia.parse("[42, 'bar'] | join('/+')")(), "42/+bar", "<array> | join('/+')");
+    deepEqual(gaia.parse("[42, 'bar'] | join('/+')")(), "42/+bar", "{array} | join('/+')");
 
     // | json
-    equal(gaia.parse("json | json")(data), JSON.stringify(data.json), "<object> | json");
+    equal(gaia.parse("json | json")(data), JSON.stringify(data.json), "{object} | json");
 
     // Chaining
-    deepEqual(gaia.parse("[42, 'bar', 'biz'] | join | upper")(), "42,BAR,BIZ", "<array> | join | upper");
+    deepEqual(gaia.parse("[42, 'bar', 'biz'] | join | upper")(), "42,BAR,BIZ", "{array} | join | upper");
 
 });
 

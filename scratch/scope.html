@@ -4,11 +4,14 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="../js/gaia.js"></script>
     <script type="text/javascript" src="../js/decl.js"></script>
-    <script type="text/javascript" src="../js/decl/expression.js"></script>
     <script type="text/javascript" src="data.js"></script>
     <link rel="stylesheet" href="list.css">
     <title>compile me, link me, be happy!</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
     <style>
+        body, input {
+            font-family: 'Open Sans', sans-serif;
+        }
         *[template] {
             opacity: .33;
         }
@@ -16,6 +19,38 @@
             margin: 16px 0 8px 0;
             border-bottom: 2px solid #888;
             background: #DDD;
+        }
+        h3 {
+            font-size: 1em;
+            margin: 1em 0 .3em 0;
+        }
+        div.demo {
+            background: #ECECEC;
+            padding: 20px;
+            border: 1px solid #CCC;
+            box-shadow: 2px 2px 5px rgba(88, 88, 88, 0.2);
+        }
+        div.demo input {
+            border: 1px solid #BDBDBD;
+            border-radius: 2px;
+            -webkit-box-shadow: inset 0px 2px 2px #ECECEC,0px 1px 1px white;
+            -moz-box-shadow: inset 0px 2px 2px #ececec,0px 1px 1px #fff;
+            box-shadow: inset 0px 2px 2px #ECECEC,0px 1px 1px white;
+            background-color: white;
+            padding: 5px 5px 5px 10px;
+            outline: none;
+            -webkit-transition: border linear 0.3s, box-shadow linear 0.3s;
+            -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+            -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
+            -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+            transition: border linear 0.3s, box-shadow linear 0.3s;
+        }
+        div.demo input:focus {
+            border: 1px solid #4078C7;
+            -w_ebkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+            -m_oz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+            box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
+            outline: none;
         }
     </style>
 </head>
@@ -35,10 +70,19 @@
         </li>
     </ul>
     <div scope="foo">Credits goes to: {{ ['Foo', 'Bar', 'Nix'] | join(" / ") }}, current time: {{ time() | date }}</div>
-    <div>dd.MM.yyyy - {{ time() | date("dd.MM.yyyy")}}</div>
-    <div>ddd MMMM d yy - {{ time() | date("ddd MMMM d yy")}}</div>
-    <div>hh:mm:ss.zzz - {{ time() | date("hh:mm:ss.zzz")}}</div>
-    <div>h:m:s ap - {{ time() | date("h:m:s ap")}}</div>
+    <div>ddd MMMM d yy - {{ time() | date("ddd dd MMMM d yy")}}</div>
+
+    <h3>Example</h3>
+    <div class="demo">
+        <input $model="input" onkeyup="first = this.value" placeholder="first name">
+        <input onkeyup="last = this.value" placeholder="last name">
+        <input type="number" onchange="age = this.value" placeholder="age"><br>
+        <tt>First name | upper: {{ first | upper }}</tt><br>
+        <tt>Last name | lower: {{ last | lower }}</tt><br>
+        <tt>Age: {{ age }}</tt><br>
+        <tt>joined: {{ [first, last, age] | join }}</tt><br>
+    </div>
+
 </body>
 <script>
     window.time = function() {
@@ -144,6 +188,7 @@ modules.push(function(node, next) {
                     var text = textPieces.slice();
                     textPieces.forEach(function(piece, i) {
                         if (piece instanceof Function) piece(scope, function(value) {
+                            console.log("~ update", value, i);
                             text[i] = value;
                             node.innerHTML = text.join("");
                         });
@@ -223,6 +268,8 @@ function compile(node) {
 
 };
 
+console.time('compile');
 compile(document.body)(document.body);
+console.timeEnd('compile');
 </script>
 </html>
