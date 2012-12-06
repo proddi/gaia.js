@@ -25,4 +25,9 @@ var gaia = {};
       }
     };
 
+    console.warn("TODO: dynamic apply expression script");
+
+    gaia.parse = function(expr) {
+        return new Expression(expr);
+    }
 })();

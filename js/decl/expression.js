@@ -159,10 +159,10 @@ Expression.prototype.parseMember = function() {
         var member = match[1];
 //        console.log("~ parseMember:", member, '"' + this.s + '"');
         var f = function(data) {
-            return data[member];
+            return data && data[member] || undefined;
         }
         f.$set = function(data, value) {
-            return data[member] = value;
+            return data ? (data[member] = value) : undefined;
         };
         return f;
     }
@@ -229,16 +229,22 @@ Expression.prototype.parseEOL = function() {
 
 Expression.prototype.filters = {
     upper: function(value) {
-        if( Object.prototype.toString.call( value ) === '[object Array]' ) {
+        if (Object.prototype.toString.call(value) === '[object Array]') {
             return value.map(function(v) { return Expression.prototype.filters.upper(v); });
         }
-        return (value + "").toUpperCase();
+        if ("string" === typeof value) {
+            return value.toUpperCase();
+        }
+        return value;
     },
     lower: function(value) {
-        if( Object.prototype.toString.call( value ) === '[object Array]' ) {
+        if (Object.prototype.toString.call(value) === '[object Array]') {
             return value.map(function(v) { return Expression.prototype.filters.lower(v); });
         }
-        return (value + "").toLowerCase();
+        if ("string" === typeof value) {
+            return value.toLowerCase();
+        }
+        return value;
     },
     arg: function(value, arg) {
 //        console.log("~ [arg]", value, arguments);
