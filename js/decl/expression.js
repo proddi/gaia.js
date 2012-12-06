@@ -18,19 +18,25 @@ var Expression = function(s) {
     }
 
     var expr = this;
-    return function(data, update) {
+    var f = function(data, update) {
         if (!update) return fun.call({}, data);
         var scope = new ExecutedExpression(expr);
         scope.data = data;
-        scope.update = function() {
+        gaia.$$update = function() {
             update(fun.call({}, data));
-        };
+        }
         scope.exec = function() {
             return fun.call({}, data);
         };
         update(fun.call(scope, data));
+        delete gaia.$$update;
         return scope;
     };
+    f.$set = function(data, value) {
+        return fun.$set.call(undefined, data, value);
+    };
+    f.$source = s;
+    return f;
 };
 
 Expression.prototype.isChar = function(c) {
@@ -68,9 +74,16 @@ Expression.prototype.parseExpression = function(trimming) {
         var nextFun = this.parseExpression();
         if (nextFun) {
             if (trimming) this.len = this.lenBack;
-            return function(value) {
+            var f = function(value) {
                 return nextFun.call(this, fun.call(this, value));
             }
+            f.$set = nextFun.$set ? function(scope, value) {
+//                console.log("!", nextFun.$set, fun, arguments);
+                return nextFun.$set.call(this, fun.call(this, scope), value);
+            } : function() {
+                throw new ReferenceError("Invalid left-hand side in assignment near:", this.s);
+            };
+            return f;
         }
     }
 
@@ -145,9 +158,13 @@ Expression.prototype.parseMember = function() {
         this.s = this.s.substr(match[0].length);
         var member = match[1];
 //        console.log("~ parseMember:", member, '"' + this.s + '"');
-        return function(data) {
+        var f = function(data) {
             return data[member];
         }
+        f.$set = function(data, value) {
+            return data[member] = value;
+        };
+        return f;
     }
 };
 
@@ -168,7 +185,7 @@ Expression.prototype.parseFunction = function() {
         return function(data) {
             var that = this;
 //            console.log("~ fun.exec", this, fun, data, params);
-            return data[fun].apply(this, params.map(function(param, i) {return param.call(that, that.data);}));
+            return data[fun].apply(data, params.map(function(param, i) {return param.call(that, that.data);}));
         }
     }
 };
@@ -189,11 +206,15 @@ Expression.prototype.parseFilter = function() {
         }
 
 //        console.log("~ parseFilter:", filter, params, '"' + this.s + '"');
-        return function(data) {
+        var f = function(data) {
             var that = this;
             params[0] = data;
             return filter.apply(this, params.map(function(param, i) {return i ? param.call(that, that.data) : param;}));
         }
+        f.$set = function() {
+            throw new ReferenceError("Invalid left-hand side in assignment with filter");
+        };
+        return f;
     }
 };
 
@@ -208,10 +229,16 @@ Expression.prototype.parseEOL = function() {
 
 Expression.prototype.filters = {
     upper: function(value) {
-        return value.toUpperCase();
+        if( Object.prototype.toString.call( value ) === '[object Array]' ) {
+            return value.map(function(v) { return Expression.prototype.filters.upper(v); });
+        }
+        return (value + "").toUpperCase();
     },
     lower: function(value) {
-        return value.toLowerCase();
+        if( Object.prototype.toString.call( value ) === '[object Array]' ) {
+            return value.map(function(v) { return Expression.prototype.filters.lower(v); });
+        }
+        return (value + "").toLowerCase();
     },
     arg: function(value, arg) {
 //        console.log("~ [arg]", value, arguments);
@@ -223,9 +250,8 @@ Expression.prototype.filters = {
     join: function(data, sep) {
         return data.join(sep);
     },
-    date: function(value, format) {
-        var date = new Date(value)
-          , x = ["ap", "AP", "mm", "m", "hh", "h", "ss", "s", "yyyy", "yy", "zzz", "z", "dddd", "ddd", "dd", "d", "MMMM", "MMM", "MM", "M"]
+    date: function(date, format) {
+        var x = ["ap", "AP", "mm", "m", "hh", "h", "ss", "s", "yyyy", "yy", "zzz", "z", "dddd", "ddd", "dd", "d", "MMMM", "MMM", "MM", "M"]
           ;
         var s = {
             fullDate: "EEEE, MMMM d,y"

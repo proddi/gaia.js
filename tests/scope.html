@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="../js/gaia.js"></script>
     <script type="text/javascript" src="../js/decl.js"></script>
     <script type="text/javascript" src="../js/decl/expression.js"></script>
     <script type="text/javascript" src="data.js"></script>
@@ -29,7 +30,7 @@
         <li repeat="city in cities">
             <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
             <span class="name">City #{{city.country}}</span>
-            <span class="desc">Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{ tag }}">{{ tag }}</a></span>
+            <span class="desc"><b>{{city.tags.length}}</b> Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{ tag }}">{{ tag }}</a></span>
             <span class="dist">{{city.distance}} mi</span>
         </li>
     </ul>
@@ -41,8 +42,8 @@
 </body>
 <script>
     window.time = function() {
-        if (this.update) setInterval(this.update, 1000);
-        return +new Date();
+        if (gaia.$$update) setInterval(gaia.$$update, 1000);
+        return new Date();
     };
 </script>
 <script>
