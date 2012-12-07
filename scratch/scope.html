@@ -12,7 +12,9 @@
         body, input {
             font-family: 'Open Sans', sans-serif;
         }
-        *[template] {
+        *[template],
+        *[repeat] {
+            display: none !important;
             opacity: .33;
         }
         h2 {
@@ -58,10 +60,10 @@
 
     <h2>DOM traversing: {{ document.title }}</h2>
     <ul>
-        <li>Current URL: {{ document.URL }} (last modified: {{ document.lastModified }})</li>
+        <li>Current URL: {{ document.URL }}</li>
     </ul>
 
-    <ul scope="foo" class="list">
+    <ul class="list">
         <li repeat="city in cities">
             <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
             <span class="name">City #{{city.country}}</span>
@@ -69,8 +71,7 @@
             <span class="dist">{{city.distance}} mi</span>
         </li>
     </ul>
-    <div scope="foo">Credits goes to: {{ ['Foo', 'Bar', 'Nix'] | join(" / ") }}, current time: {{ time() | date }}</div>
-    <div>ddd MMMM d yy - {{ time() | date("ddd dd MMMM d yy")}}</div>
+    <div>Credits goes to: {{ ['Foo', 'Bar', 'Nix'] | join(" / ") }}, current time: {{ time() | date }}</div>
 
     <h3>Example</h3>
     <div class="demo">
@@ -80,9 +81,10 @@
         <tt>First name | upper: {{ first | upper }}</tt><br>
         <tt>Last name | lower: {{ last | lower }}</tt><br>
         <tt>Age: {{ age }}</tt><br>
-        <tt>joined: {{ [first, last, age] | join }}</tt><br>
+        <tt>joined: {{ [first, last, age]}}</tt><br>
     </div>
 
+    <p>last modified: {{ document.lastModified }}</p>
 </body>
 <script>
     window.time = function() {
@@ -96,7 +98,6 @@ var modules = [];
 // prevents SCRIPT traverse
 modules.push(function(node, next) {
     if ("SCRIPT" === node.nodeName) {
-        console.log("~ [noScript] prevents compiling of script node", node);
         return;
     }
     next();
@@ -107,7 +108,7 @@ modules.push(function(node, next) {
     if (node.hasAttribute("repeat")) {
         var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
         node.removeAttribute("repeat");
-        console.log("~ [repeat]", match);
+//        console.log("~ [repeat]", match);
 
         if (!match || match.length !== 3) {
             throw new Error("repeat needs 'x in y'");
@@ -121,7 +122,8 @@ modules.push(function(node, next) {
 
         dataSet = decl._prepareArray(dataSet);
 
-        return function(n, scope) {
+        return function(n, next) {
+            var scope = this;
             // prepare iteration
             var data = decl.solve(scope, dataSet);
             data = decl._prepareArray(data);
@@ -132,7 +134,7 @@ modules.push(function(node, next) {
                 var clone = node.cloneNode(true);
                 var cloneScope = decl.scope(scope);
                 cloneScope[iterator] = data[i];
-                console.log("~ [repeat.linker]", data[i], "from", data, "as", iterator, "=", cloneScope, scope);
+//                console.log("~ [repeat.linker]", data[i], "from", data, "as", iterator, "=", cloneScope, scope);
                 linker(clone, cloneScope);
                 parentNode.appendChild(clone);
             }
@@ -149,12 +151,34 @@ modules.push(function(node, next) {
                 var node = parentNode.children[idx];
                 parentNode.removeChild(node);
             });
-
+            next(scope);
         };
     } else {
         next();
     }
 });
+
+// Scope feature
+modules.push(function(node, next) {
+    if (node.hasAttribute("scope")) {
+        var expr = new Expression(node.getAttribute("scope"));
+        node.removeAttribute("scope");
+        console.log("~ [scope]", expr.$source);
+        next(function(node, next) {
+            var scope = expr(this);
+            if ("function" === typeof scope) {
+                scope = new scope(this);
+                console.log("Creating scope from function", scope);
+            }
+            console.log("~ scope.linking", scope);
+            next(scope);
+        });
+    } else {
+        next();
+    }
+});
+
+
 /*
 // fill #test nodes
 modules.push(function(node, next) {
@@ -181,14 +205,15 @@ modules.push(function(node, next) {
           , style = node.style.cssText && decode(node.style.cssText)
           , proceedStyle = undefined !== style && rx.test(style)
           ;
-          console.log("~ compile.expr", node, style, textPieces);
+
         if (isText || isHref || proceedStyle) {
-            return function(node, scope) {
+            return function(node, next) {
+                var scope = this;
                 if (isText) {
                     var text = textPieces.slice();
                     textPieces.forEach(function(piece, i) {
                         if (piece instanceof Function) piece(scope, function(value) {
-                            console.log("~ update", value, i);
+//                            console.log("~ update", value, i);
                             text[i] = value;
                             node.innerHTML = text.join("");
                         });
@@ -208,6 +233,7 @@ modules.push(function(node, next) {
                         return decl.solve(scope, match.trim());
                     });
                 }
+                next(scope);
             };
         }
     } else {
@@ -216,60 +242,81 @@ modules.push(function(node, next) {
 });
 
 // traverser
-function traverser(node, path, linker) {
-        var nodes = [];
-        for (var i = node.children.length >>> 0; i--;) nodes[i] = node.children[i];
-        for (i = 0; (node = nodes[i]); i++ ) {
-            __compile(node, path.concat([i]), linker);
+function traverser(node) {
+    var nodes = []
+      , l
+      , links = []
+      ;
+    for (var i = node.children.length >>> 0; i--;) nodes[i] = node.children[i];
+    for (i = 0; (node = nodes[i]); i++ ) {
+        if (l = __compile(node)) {
+            links.push([i, l]);
         }
+    }
+    return links.length && function(node, next) {
+        var i = 0
+          , link
+          ;
+        function f(scope) {
+            if ((link = links[i++])) {
+                link[1].call(scope, node.children[link[0]], f);
+            }
+        }
+        f(this);
+        next(this);
+    };
 };
 
-function __compile(node, path, linker) {
+function __compile(node) {
     var i = 0
       , module
       , fun
+      , links = []
       ;
 
     function f() {
         if ((module = modules[i++])) {
             fun = module(node, function(fun) {
-                if (fun) linker(path, fun);
+                if (fun) links.push(fun);
                 f();
             });
-            if (fun) linker(path, fun);
+            if (fun) links.push(fun);
         } else {
-            traverser(node, path, linker);
+            fun = traverser(node);
+            if (fun) links.push(fun);
         }
     }
     f();
+
+    return links.length && function(node, next) {
+        var i = 0
+          , link
+          ;
+        function f(scope) {
+            if ((link = links[i++])) {
+                link.call(scope, node, f);
+            }
+        }
+        f(this);
+        next(this);
+    };
 }
 
 function compile(node) {
-    console.log("~ compile", node);
-    var links = [];
+    console.time('compile', "fooo");
+//    console.log("~ compile", node);
 
-    __compile(node, [], function(path, fun) {
-        console.log("~ linker.reg", path);
-        links.push([path, fun]);
-    });
+    var linker = __compile(node);
+
+    console.timeEnd('compile', "bar");
 
     // link function
     return function(node, scope) {
         scope = scope || window;
-        console.log("~ linker", node, scope, links);
-        for (var i=0, link; (link=links[i]); i++) {
-            var target = node;
-            for (var j=0, l=link[0].length; j<l; j++) {
-                target = target.children[link[0][j]];
-            }
-            link[1](target, scope);
-        }
+        linker.call(scope, node, function() {});
     };
-
 };
 
-console.time('compile');
 compile(document.body)(document.body);
-console.timeEnd('compile');
 </script>
 </html>
