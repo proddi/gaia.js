@@ -164,7 +164,8 @@ Expression.prototype.parseMember = function() {
                 decl.watch(data, member, gaia.$$update);
 //                console.log("~ register update listener:", data + "." + member);
             }
-            return data && data[member] || undefined;
+            var val = data && data[member];
+            return undefined !== val ? val : undefined;
         }
         f.$set = function(data, value) {
             return data ? (data[member] = value) : undefined;

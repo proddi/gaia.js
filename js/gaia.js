@@ -39,4 +39,17 @@ var gaia = {};
     gaia.parse = function(expr) {
         return new Expression(expr);
     }
+
+	/**
+	 * Creates a scope including prototype.
+	 *
+	 * @param {Object} proto
+	 * @returns {Object} Scope with proto as prototype.
+	 */
+    gaia.scope = function(proto) {
+        function Scope() {}
+        Scope.prototype = proto;
+        return new Scope();
+    };
+
 })();

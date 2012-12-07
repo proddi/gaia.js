@@ -3,6 +3,7 @@ test("Expression test - atomic", function() {
     var data = {
             num: 42
           , str: "foo"
+          , strEmpty: ""
           , arr: ["bar", 23]
           , user: {
                 name: "John"
@@ -18,6 +19,7 @@ test("Expression test - atomic", function() {
     // String
     equal(gaia.parse("'foo'")(), "foo", "'foo'");
     equal(gaia.parse('"foo"')(), "foo", '"foo"');
+    equal(gaia.parse('""')(), "", '""');
 
     // Array
     deepEqual(gaia.parse("[42, 'bar']")(), [42, "bar"], "[42, 'bar']");
@@ -28,6 +30,7 @@ test("Expression test - atomic", function() {
 
     e = new Expression("str");
     equal(e(data), "foo", "data. " + e.$source);
+    equal(gaia.parse("strEmpty")(data), "", 'strEmpty');
 
     e = new Expression("user");
     equal(e(data), data.user, "data. " + e.$source);

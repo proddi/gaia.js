@@ -5,56 +5,10 @@
     <script type="text/javascript" src="../js/gaia.js"></script>
     <script type="text/javascript" src="../js/decl.js"></script>
     <script type="text/javascript" src="data.js"></script>
+    <link rel="stylesheet" href="../assets/styles/gaia.css">
     <link rel="stylesheet" href="list.css">
     <title>compile me, link me, be happy!</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
-    <style>
-        body, input {
-            font-family: 'Open Sans', sans-serif;
-        }
-        *[template],
-        *[repeat] {
-            display: none !important;
-            opacity: .33;
-        }
-        h2 {
-            margin: 16px 0 8px 0;
-            border-bottom: 2px solid #888;
-            background: #DDD;
-        }
-        h3 {
-            font-size: 1em;
-            margin: 1em 0 .3em 0;
-        }
-        div.demo {
-            background: #ECECEC;
-            padding: 20px;
-            border: 1px solid #CCC;
-            box-shadow: 2px 2px 5px rgba(88, 88, 88, 0.2);
-        }
-        div.demo input {
-            border: 1px solid #BDBDBD;
-            border-radius: 2px;
-            -webkit-box-shadow: inset 0px 2px 2px #ECECEC,0px 1px 1px white;
-            -moz-box-shadow: inset 0px 2px 2px #ececec,0px 1px 1px #fff;
-            box-shadow: inset 0px 2px 2px #ECECEC,0px 1px 1px white;
-            background-color: white;
-            padding: 5px 5px 5px 10px;
-            outline: none;
-            -webkit-transition: border linear 0.3s, box-shadow linear 0.3s;
-            -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
-            -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
-            -o-transition: border linear 0.2s, box-shadow linear 0.2s;
-            transition: border linear 0.3s, box-shadow linear 0.3s;
-        }
-        div.demo input:focus {
-            border: 1px solid #4078C7;
-            -w_ebkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-            -m_oz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-            box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
-            outline: none;
-        }
-    </style>
 </head>
 <body decl2>
 
@@ -63,8 +17,8 @@
         <li>Current URL: {{ document.URL }}</li>
     </ul>
 
-    <ul class="list">
-        <li repeat="city in foo.cities">
+    <ul class="list" scope="foo">
+        <li repeat="city in cities">
             <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
             <span class="name">City #{{city.country}}</span>
             <span class="desc"><b>{{city.tags.length}}</b> Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{ tag }}">{{ tag }}</a></span>
@@ -75,13 +29,13 @@
 
     <h3>Example</h3>
     <div class="demo">
-        <input $model="input" onkeyup="first = this.value" placeholder="first name">
-        <input onkeyup="last = this.value" placeholder="last name">
-        <input type="number" onchange="age = this.value" placeholder="age"><br>
-        <tt>First name | upper: {{ first | upper }}</tt><br>
-        <tt>Last name | lower: {{ last | lower }}</tt><br>
-        <tt>Age: {{ age }}</tt><br>
-        <tt>joined: {{ [first, last, age]}}</tt><br>
+        <input model="foo.first" placeholder="first name">
+        <input model="foo.last" placeholder="last name">
+        <input type="number" model="foo.age" placeholder="age"><br>
+        <tt>First name | upper: {{ foo.first | upper }}</tt><br>
+        <tt>Last name | lower: {{ foo.last | lower }}</tt><br>
+        <tt>Age: {{ foo.age }}</tt><br>
+        <tt>joined: {{ [foo.first, foo.last, age]}}</tt><br>
     </div>
 
     <p>last modified: {{ document.lastModified }}</p>
@@ -93,7 +47,9 @@
     };
 
     var foo = {
-        cities: cities
+        cities: cities,
+        first: "John",
+        last: "Doe"
     }
 </script>
 <script>
@@ -122,12 +78,10 @@ modules.push(function(node, next) {
         node.parentNode.removeChild(node);
         node.removeAttribute("repeat");
 
-        var iterator = match[1]
+        var iteratorExpr = new Expression(match[1])
           , collectionExpr = new Expression(match[2])
           , linker = compile(node)
           ;
-
-//        dataSet = decl._prepareArray(dataSet);
 
         return function(n, next) {
             var scope = this;
@@ -151,8 +105,8 @@ modules.push(function(node, next) {
                 // create new instances
                 for (var i = 0, l = collection.length; i < l; i++) {
                     var clone = node.cloneNode(true);
-                    var cloneScope = decl.scope(scope);
-                    cloneScope[iterator] = collection[i];
+                    var cloneScope = gaia.scope(scope);
+                    iteratorExpr.$set(cloneScope, collection[i]);
                     linker(clone, cloneScope);
                     parentNode.appendChild(clone);
                     instances.push(clone);
@@ -160,15 +114,17 @@ modules.push(function(node, next) {
 
                 collection.$on("add", function(item) {
                     var clone = node.cloneNode(true);
-                    var cloneScope = decl.scope(scope);
-                    cloneScope[iterator] = item;
+                    var cloneScope = gaia.scope(scope);
+                    iteratorExpr.$set(cloneScope, item);
                     linker(clone, cloneScope);
                     parentNode.appendChild(clone);
+                    instances.push(clone);
                 });
 
                 collection.$on("remove", function(item, idx) {
                     var node = parentNode.children[idx];
                     parentNode.removeChild(node);
+                    // TODO: remove from instances
                 });
             });
             next(scope); // linking
@@ -184,7 +140,7 @@ modules.push(function(node, next) {
         var expr = new Expression(node.getAttribute("scope"));
         node.removeAttribute("scope");
         console.log("~ [scope]", expr.$source);
-        next(function(node, next) {
+        next(function(n, next) {
             var scope = expr(this);
             if ("function" === typeof scope) {
                 scope = new scope(this);
@@ -198,6 +154,29 @@ modules.push(function(node, next) {
     }
 });
 
+// model-attribute on <input> tags
+modules.push(function(node, next) {
+    if (1 === node.nodeType && "INPUT" === node.nodeName && node.hasAttribute("model")) {
+        var expr = new Expression(node.getAttribute("model"));
+        node.removeAttribute("model");
+        console.log("~ FIND INPUT", node, expr.$source);
+        next(function(n, next) {
+            var ign
+              , scope = this
+              ;
+            expr(scope, function(val) {
+                if (ign) return;
+                n.value = val;
+            });
+            n.addEventListener("keyup", function(ev) {
+                ign = true;
+                expr.$set(scope, n.value || "");
+            });
+            next(scope);
+        });
+    }
+    next();
+});
 
 /*
 // fill #test nodes
