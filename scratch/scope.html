@@ -107,18 +107,21 @@ modules.push(function(node, next) {
 modules.push(function(node, next) {
     if (node.hasAttribute("repeat")) {
         var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
-        node.removeAttribute("repeat");
 //        console.log("~ [repeat]", match);
 
         if (!match || match.length !== 3) {
             throw new Error("repeat needs 'x in y'");
         }
 
+        // replace node to have a reference node in linking process.
+        node.parentNode.insertBefore(document.createElement('span'), node);
+        node.parentNode.removeChild(node);
+        node.removeAttribute("repeat");
+
         var iterator = match[1]
           , dataSet = match[2]
           , linker = compile(node)
           ;
-
 
         dataSet = decl._prepareArray(dataSet);
 
