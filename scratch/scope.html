@@ -64,7 +64,7 @@
     </ul>
 
     <ul class="list">
-        <li repeat="city in cities">
+        <li repeat="city in foo.cities">
             <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
             <span class="name">City #{{city.country}}</span>
             <span class="desc"><b>{{city.tags.length}}</b> Tags: <a class="tag" repeat="tag in city.tags" href="/tags/{{ tag }}">{{ tag }}</a></span>
@@ -91,6 +91,10 @@
         if (gaia.$$update) setInterval(gaia.$$update, 1000);
         return new Date();
     };
+
+    var foo = {
+        cities: cities
+    }
 </script>
 <script>
 var modules = [];
@@ -119,45 +123,58 @@ modules.push(function(node, next) {
         node.removeAttribute("repeat");
 
         var iterator = match[1]
-          , dataSet = match[2]
+          , collectionExpr = new Expression(match[2])
           , linker = compile(node)
           ;
 
-        dataSet = decl._prepareArray(dataSet);
+//        dataSet = decl._prepareArray(dataSet);
 
         return function(n, next) {
             var scope = this;
-            // prepare iteration
-            var data = decl.solve(scope, dataSet);
-            data = decl._prepareArray(data);
-            var parentNode = n.parentNode;
+
+            // extract and remove parentNode
+            var parentNode = n.parentNode
+              , instances = []
+              , instance
+              ;
             parentNode.removeChild(n);
 
-            for ( var i = 0, l = data.length; i < l; i++) {
-                var clone = node.cloneNode(true);
-                var cloneScope = decl.scope(scope);
-                cloneScope[iterator] = data[i];
-//                console.log("~ [repeat.linker]", data[i], "from", data, "as", iterator, "=", cloneScope, scope);
-                linker(clone, cloneScope);
-                parentNode.appendChild(clone);
-            }
+            collectionExpr(scope, function(collection) {
+                collection = decl._prepareArray(collection);
+                console.log("~ collection eval:", collectionExpr.$source, "=", collection);
 
-            data.$on("add", function(item) {
-                var clone = node.cloneNode(true);
-                var cloneScope = decl.scope(scope);
-                cloneScope[iterator] = item;
-                linker(clone, cloneScope);
-                parentNode.appendChild(clone);
-            });
+                // remove old instances
+                while ((instance = instances.shift())) {
+                    parentNode.removeChild(instance);
+                }
 
-            data.$on("remove", function(item, idx) {
-                var node = parentNode.children[idx];
-                parentNode.removeChild(node);
+                // create new instances
+                for (var i = 0, l = collection.length; i < l; i++) {
+                    var clone = node.cloneNode(true);
+                    var cloneScope = decl.scope(scope);
+                    cloneScope[iterator] = collection[i];
+                    linker(clone, cloneScope);
+                    parentNode.appendChild(clone);
+                    instances.push(clone);
+                }
+
+                collection.$on("add", function(item) {
+                    var clone = node.cloneNode(true);
+                    var cloneScope = decl.scope(scope);
+                    cloneScope[iterator] = item;
+                    linker(clone, cloneScope);
+                    parentNode.appendChild(clone);
+                });
+
+                collection.$on("remove", function(item, idx) {
+                    var node = parentNode.children[idx];
+                    parentNode.removeChild(node);
+                });
             });
-            next(scope);
+            next(scope); // linking
         };
     } else {
-        next();
+        next(); // compiling
     }
 });
 
