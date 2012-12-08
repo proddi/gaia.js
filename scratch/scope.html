@@ -17,6 +17,18 @@
         <li>Current URL: {{ document.URL }}</li>
     </ul>
 
+    <template use="Header"
+         title="{{ title | upper }}"
+         description="a description would be nice">template placer</template>
+
+    <template use="Header"
+         title="{{ title | upper }}"
+         description="a description would be nice">template placer</template>
+
+    <div template="Header" foo="bar" i-am-a="template">
+        <b>{{ n }}</b>: <span>{*{ description }*}</span><input model="n">
+    </div>
+
     <ul class="list" scope="foo">
         <li repeat="city in cities">
             <div class="icon" style="background-image: url(images/{{city.type}}.png)"></div>
@@ -51,6 +63,7 @@
         first: "John",
         last: "Doe"
     }
+    var n = "Hans";
 </script>
 <script>
 var modules = [];
@@ -61,6 +74,24 @@ modules.push(function(node, next) {
         return;
     }
     next();
+});
+
+// use - template
+modules.push(function(node, next) {
+    if (node.hasAttribute("use")) {
+        var name = node.getAttribute("use")
+         ;
+        node.removeAttribute("use");
+        var linker = templates[name](node);
+
+        return function(n, next) {
+            var scope = gaia.scope(this); // clone scope
+            linker.call(scope, n, function() {});
+//            next(); // linker
+        };
+    } else {
+        next(); // compiler
+    }
 });
 
 // proceed repeat
@@ -248,7 +279,7 @@ function traverser(node) {
       ;
     for (var i = node.children.length >>> 0; i--;) nodes[i] = node.children[i];
     for (i = 0; (node = nodes[i]); i++ ) {
-        if (l = __compile(node)) {
+        if ((l = __compile(node))) {
             links.push([i, l]);
         }
     }
@@ -272,7 +303,6 @@ function __compile(node) {
       , fun
       , links = []
       ;
-
     function f() {
         if ((module = modules[i++])) {
             fun = module(node, function(fun) {
@@ -301,13 +331,35 @@ function __compile(node) {
     };
 }
 
-function compile(node) {
-    console.time('compile', "fooo");
-//    console.log("~ compile", node);
+var templates = {};
 
+function parseTemplates(node) {
+    var nodes = []
+      , n = node.querySelectorAll("[template]");
+    for (var i = n.length >>> 0; i--;) nodes[i] = n[i];
+    nodes.forEach(function(node) {
+        var name = node.getAttribute("template");
+        node.removeAttribute("template");
+        node.parentNode.removeChild(node);
+        var linker = __compile(node);
+        templates[name] = function(placeholder) {
+            var clone = node.cloneNode(true);
+            placeholder.parentNode.insertBefore(clone, placeholder);
+            placeholder.parentNode.removeChild(placeholder);
+            return linker;
+        };
+        console.log("~ found template:", name, node);
+    });
+}
+
+function compile(node) {
+
+    console.time('compile');
+
+    var templates = parseTemplates(node);
     var linker = __compile(node);
 
-    console.timeEnd('compile', "bar");
+    console.timeEnd('compile');
 
     // link function
     return function(node, scope) {
@@ -317,5 +369,6 @@ function compile(node) {
 };
 
 compile(document.body)(document.body);
+
 </script>
 </html>

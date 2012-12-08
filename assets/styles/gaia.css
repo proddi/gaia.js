@@ -2,9 +2,11 @@ body, input {
     font-family: 'Open Sans', sans-serif;
 }
 *[template],
-*[repeat] {
-    display: none !important;
+*[repeat],
+*[use]{
+    d_isplay: none !important;
     opacity: .33;
+    background: bisque;
 }
 h2 {
     margin: 16px 0 8px 0;
