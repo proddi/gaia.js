@@ -17,17 +17,20 @@
         <li>Current URL: {{ document.URL }}</li>
     </ul>
 
-    <template use="Header"
-         title="{{ title | upper }}"
-         description="a description would be nice">template placer</template>
+    <span use="Header" name="xxx"
+         title="foo.first | upper"
+         data-description="a description would be nice">template placer</span>
 
-    <template use="Header"
-         title="{{ title | upper }}"
-         description="a description would be nice">template placer</template>
+    <template use="Header" name="yyy"
+         title="foo.last | upper"
+         data-description="a description would be nice">template placer</template>
 
     <div template="Header" foo="bar" i-am-a="template">
-        <b>{{ n }}</b>: <span>{*{ description }*}</span><input model="n">
+        <b>{{ title }}</b>: <span>{*{ description }*}</span><input model="title">
     </div>
+
+    <tt>Name from template1: {{ xxx.title }}</tt><br/>
+    <tt>Name from template2: {{ yyy.title }}</tt>
 
     <ul class="list" scope="foo">
         <li repeat="city in cities">
@@ -80,12 +83,28 @@ modules.push(function(node, next) {
 modules.push(function(node, next) {
     if (node.hasAttribute("use")) {
         var name = node.getAttribute("use")
-         ;
+          , member = node.getAttribute("name")
+          , values = {}
+          ;
         node.removeAttribute("use");
+        node.removeAttribute("name");
         var linker = templates[name](node);
 
-        return function(n, next) {
+        for (var i = 0, attrib; (attrib = node.attributes[i]); i++) {
+            console.log("~~ ", attrib.name, "=", attrib.value);
+            values[attrib.name] = gaia.parse(attrib.value);
+        }
+
+        return function(n/*, next*/) {
             var scope = gaia.scope(this); // clone scope
+            this[member] = scope;
+
+            for (var key in values) {
+                values[key](scope, function(key, value) {
+                    scope[key] = value;
+                }.bind(this, key));
+            }
+
             linker.call(scope, n, function() {});
 //            next(); // linker
         };
