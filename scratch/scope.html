@@ -21,9 +21,15 @@
          title="foo.first | upper"
          data-description="a description would be nice">template placer</span>
 
-    <template use="Header" name="yyy"
+    <div use="Header" name="yyy">
+        <i name="title">{{ foo.last | upper }}</i>
+        <i name="description">a description would be nice</i>
+    </div>
+    <div name="yyy" use="Header"
          title="foo.last | upper"
-         data-description="a description would be nice">template placer</template>
+         data-description="a description would be nice">
+        template placer
+    </div>
 
     <div template="Header" foo="bar" i-am-a="template">
         <b>{{ title }}</b>: <span>{*{ description }*}</span><input model="title">

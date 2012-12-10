@@ -41,6 +41,27 @@ test("Expression test - atomic", function() {
 
 });
 
+test("Expression test - text", function() {
+    // test dataset
+    var data = {
+            num: 42
+          , str: "foo"
+          , strEmpty: ""
+          , arr: ["bar", 23]
+          , user: {
+                name: "John"
+              , age: 23
+              , tags: ["cool", "imaginary"]
+            }
+        };
+
+    equal(gaia.parseText("The answer is {{42}}!")(), "The answer is 42!", "The answer is {{42}}!");
+//    equal(gaia.parseText("The answer is {{str}}!")(data), "The answer is 42!", "The answer is {{42}}!");
+
+    equal(gaia.parseText("My name is {{user.name}}.")(data), "My name is John.", "My name is {{user.name}}.");
+    equal(gaia.parseText("I'm {{user.age}} year's old {{user.name}}.")(data), "I'm 23 year's old John.", "I'm {{user.age}} year's old {{user.name}}.");
+
+});
 test("Expression test - setter", function() {
     // test dataset
     var data = {
@@ -68,10 +89,14 @@ test("Expression test - setter", function() {
     e.$set(data, 21)
     equal(data.user.foo.age, undefined, "data.data.foo.age");
     */
-    
+
     // Filter - invalid
 //    e = new Expression("user.name | upper");
 //    throws(e.$set(data, "Doe"), ReferenceError, "Write an expression with filter throws exception.");
+
+});
+
+test("Expression test - bindings", function() {
 
 });
 

@@ -162,7 +162,7 @@ Expression.prototype.parseMember = function() {
             if (gaia.$$update) {
                 data = decl._prepareArray(data);
                 decl.watch(data, member, gaia.$$update);
-//                console.log("~ register update listener:", data + "." + member);
+                console.log("~ register update listener:", data + "." + member);
             }
             var val = data && data[member];
             return undefined !== val ? val : undefined;

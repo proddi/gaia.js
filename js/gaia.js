@@ -38,7 +38,25 @@ var gaia = {};
 
     gaia.parse = function(expr) {
         return new Expression(expr);
-    }
+    };
+
+    gaia.parseText = function(text) {
+        var rx = /{{(.*?)}}/g
+          , pieces = text.split(rx).map(function(piece, i) { return i%2 ? new Expression(piece) : piece })
+          ;
+        text = pieces.slice();
+
+        return function(data, update) {
+            pieces.forEach(function(piece, i) {
+                if (piece instanceof Function) piece(data, function(value) {
+                    text[i] = value;
+                    update && update(text.join(""));
+                });
+                return text.join("");
+            });
+            return text.join("");
+        }
+    };
 
 	/**
 	 * Creates a scope including prototype.
