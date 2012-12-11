@@ -110,6 +110,25 @@ test("Expression test - setter", function() {
 });
 
 test("Expression test - bindings", function() {
+    var data = {
+            user: {
+                name: "John"
+              , age: 23
+              , tags: ["cool", "imaginary"]
+            }
+        }
+      , e
+      , sequence = [];
+
+    e = gaia.parse("user.name");
+    sequence.push("init");
+    e(data, function(value) {
+        sequence.push("value:" + value);
+    })
+    sequence.push("$set");
+    e.$set(data, "Jason");
+    sequence.push("$set.done");
+    equal(sequence.join("|"), "init|value:John|$set|value:Jason|$set.done", "checking linking sequence");
 
 });
 
@@ -120,8 +139,7 @@ test("Expression test - filters", function() {
                 s: "John",
                 a: [23, 42]
             }
-        }
-      , e;
+        };
 
     // | lower
     equal(gaia.parse("'John' | lower")(), "john", "<string> | lower");
