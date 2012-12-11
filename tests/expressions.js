@@ -11,8 +11,8 @@ test("Expression test - atomic", function() {
               , tags: ["cool", "imaginary"]
               , displayName: function(age) { return ["John Connor", age].join() }
             }
-          , fun: function(s) { return s || "Buhh"; }
-          , fun2: function(s) { return function() { return s || "Buhh"; } }
+          , fun: function(val) { return val || "Buhh"; }
+          , fun2: function(val) { return function() { return val || "Buhh"; } }
         }
       , e;
 
@@ -51,6 +51,10 @@ test("Expression test - atomic", function() {
 
     // complex
     equal(gaia.parse("fun(user.displayName(42))")(data), data.fun(data.user.displayName(42)), "data. fun(data. user.displayName(42)) (complex, recursive)");
+
+debugger;
+    // Complex
+    equal(gaia.parse("fun(user.tags)")(data), "imaginary", "data. fun(user.tags)[1]");
 
 });
 
