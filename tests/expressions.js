@@ -10,9 +10,11 @@ test("Expression test - atomic", function() {
               , age: 23
               , tags: ["cool", "imaginary"]
             }
+          , fun: function(s) { return s || "Buhh"; }
+          , fun2: function(s) { return function() { return s || "Buhh"; } }
         }
       , e;
-
+/*
     // Number
     equal(gaia.parse("42")(), 42, "42");
 
@@ -35,9 +37,17 @@ test("Expression test - atomic", function() {
     e = new Expression("user");
     equal(e(data), data.user, "data. " + e.$source);
 
+    equal(gaia.parse("fun")(data), data.fun, "data.fun");
+    equal(gaia.parse("fun()")(data), data.fun(), "data.fun()");
+    equal(gaia.parse("fun(42)")(data), data.fun(42), "data.fun(42)");
+    equal(gaia.parse("fun2(42)()")(data), data.fun2(42)(), "data.fun2(42)()");
+
+    equal(gaia.parse("arr[0]")(data), data.arr[0], "data.arr[0]");
+
+    equal(gaia.parse("biz")(data), undefined, "data.biz.f.x.c");
+*/
     // Member - not exists
-    e = new Expression("user.foo.bar.biz");
-    equal(e(data), undefined, "data. " + e.$source);
+    equal(gaia.parse("user.foo")(data), undefined, "data. ");
 
 });
 

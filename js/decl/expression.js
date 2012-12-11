@@ -57,6 +57,15 @@ Expression.prototype.parseExpression = function(trimming) {
         this.len = this.s.length;
     }
 
+    var fun = (
+            this.parseIdentifier()
+         || this.parseNumber()
+         || this.parseString()
+         || this.parseArray()
+//         || this.parseFilter()
+        );
+    return fun;
+/*
 //    console.log("~ parseExpression:", '"' + this.s + '"', trimming);
     var fun = (
             this.parseFunction()
@@ -89,6 +98,7 @@ Expression.prototype.parseExpression = function(trimming) {
 
     if (trimming) this.len = this.lenBack;
     return fun;
+*/
 }
 
 Expression.prototype.parseDotOperator = function() {
@@ -152,46 +162,74 @@ Expression.prototype.parseArray = function() {
     }
 };
 
-Expression.prototype.parseMember = function() {
+/**
+ * Parses an identifier.
+ */
+Expression.prototype.parseIdentifier = function() {
     var match = /^([A-Z-a-z_][\w]*)/.exec(this.s);
     if (match) {
         this.s = this.s.substr(match[0].length);
-        var member = match[1];
-//        console.log("~ parseMember:", member, '"' + this.s + '"');
+        var identifier = match[1];
+        console.log("~ parseIdentifier:", identifier, '"' + this.s + '"');
+        var x = this.parseMember()
+          , value;
         var f = function(data) {
             if (gaia.$$update) {
                 data = decl._prepareArray(data);
-                decl.watch(data, member, gaia.$$update);
-                console.log("~ register update listener:", data + "." + member);
+                decl.watch(data, identifier, gaia.$$update);
+                console.log("~ register update listener:", data + "." + identifier);
             }
-            var val = data && data[member];
-            return undefined !== val ? val : undefined;
+            if (!data) return;
+            value = data[identifier];
+            return x ? x.call(this, value) : value;
         }
         f.$set = function(data, value) {
-            return data ? (data[member] = value) : undefined;
+            return data ? (data[identifier] = value) : undefined;
         };
         return f;
     }
 };
 
+Expression.prototype.parseMember = function() {
+    return (
+        this.isChar(".") && (
+            this.parseIdentifier()
+        )
+     || this.parseFunction()
+     || this.parseMemberArray()
+    );
+};
+
 Expression.prototype.parseFunction = function() {
-    var match = /^([A-Z-a-z_][\w]*)\(/.exec(this.s);
-    if (match) {
-        this.s = this.s.substr(match[0].length);
-        var fun = match[1],
-            params = [];
+    if (this.isChar("(")) {
+        var params = [];
         if (!this.isChar(")")) {
             do {
                 params.push(this.parseExpression(true) || function() {});
             } while (this.isChar(","));
             if (!this.isChar(")")) throw "function parameters not closed: " + this.s;
         }
-
-//        console.log("~ parseFunction:", fun, params, this.s);
+        console.log("~ parseFunction:", params, this.s);
+        var x = this.parseMember()
+          , value;
         return function(data) {
             var that = this;
-//            console.log("~ fun.exec", this, fun, data, params);
-            return data[fun].apply(data, params.map(function(param, i) {return param.call(that, that.data);}));
+            console.log("~ fun.exec", this, data, params);
+            value = data.apply(data, params.map(function(param, i) {return param.call(that, that.data);}));
+            return x ? x.call(this, value) : value;
+        }
+    }
+};
+
+Expression.prototype.parseMemberArray = function() {
+    if (this.isChar("[")) {
+        var keyFun = this.parseExpression();
+        if (!this.isChar("]")) throw "array isn't closed: " + this.s;
+        var x = this.parseMember()
+          , value;
+        return function(data) {
+            value = data[keyFun.call(this, this.data)];
+            return x ? x.call(this, value) : value;
         }
     }
 };
