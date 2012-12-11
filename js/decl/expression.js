@@ -64,7 +64,11 @@ Expression.prototype.parseExpression = function(trimming) {
          || this.parseArray()
 //         || this.parseFilter()
         );
-    return fun;
+
+    var filter = this.parseFilter();
+    return filter && function(data) {
+        return filter.call(this, fun.call(this, data));
+    } || fun;
 /*
 //    console.log("~ parseExpression:", '"' + this.s + '"', trimming);
     var fun = (
@@ -184,7 +188,11 @@ Expression.prototype.parseIdentifier = function() {
             return x ? x.call(this, value) : value;
         }
         f.$set = function(data, value) {
-            return data ? (data[identifier] = value) : undefined;
+            if (!data) {
+                console.warn("~ Expression.$set - ignoring setting", identifier, "on", data);
+                return;
+            }
+            return x ? x.$set && x.$set.call(this, data[identifier], value) : (data[identifier] = value);
         };
         return f;
     }
@@ -249,11 +257,19 @@ Expression.prototype.parseFilter = function() {
             if (!this.isChar(")")) throw SyntaxError("filter parameters not closed: " + this.s);
         }
 
+        var x = this.parseFilter()
+          , value;
+//        return filter && function(data) {
+//            return filter.call(this, fun.call(this, data));
+//        } || fun;
+
+
 //        console.log("~ parseFilter:", filter, params, '"' + this.s + '"');
         var f = function(data) {
             var that = this;
             params[0] = data;
-            return filter.apply(this, params.map(function(param, i) {return i ? param.call(that, that.data) : param;}));
+            value = filter.apply(this, params.map(function(param, i) {return i ? param.call(that, that.data) : param;}));
+            return x ? x.call(this, value) : value;
         }
         f.$set = function() {
             throw new ReferenceError("Invalid left-hand side in assignment with filter");

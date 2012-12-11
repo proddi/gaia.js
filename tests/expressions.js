@@ -14,7 +14,7 @@ test("Expression test - atomic", function() {
           , fun2: function(s) { return function() { return s || "Buhh"; } }
         }
       , e;
-/*
+
     // Number
     equal(gaia.parse("42")(), 42, "42");
 
@@ -45,7 +45,7 @@ test("Expression test - atomic", function() {
     equal(gaia.parse("arr[0]")(data), data.arr[0], "data.arr[0]");
 
     equal(gaia.parse("biz")(data), undefined, "data.biz.f.x.c");
-*/
+
     // Member - not exists
     equal(gaia.parse("user.foo")(data), undefined, "data. ");
 
