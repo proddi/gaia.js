@@ -19,9 +19,14 @@ var Expression = function(s) {
 
     var expr = this;
     var f = function(data, update) {
-        if (!update) return fun.call({}, data);
+        var f = function() {
+            gaia.$$data = data;
+            var value = fun.apply(this, arguments);
+            delete gaia.$$data;
+            return value;
+        }
+        if (!update) return f.call({}, data);
         var scope = new ExecutedExpression(expr);
-        scope.data = data;
         gaia.$$update = function() {
             update(fun.call({}, data));
         }
@@ -174,14 +179,16 @@ Expression.prototype.parseIdentifier = function() {
     if (match) {
         this.s = this.s.substr(match[0].length);
         var identifier = match[1];
-        console.log("~ parseIdentifier:", identifier, '"' + this.s + '"');
         var x = this.parseMember()
           , value;
         var f = function(data) {
             if (gaia.$$update) {
                 data = decl._prepareArray(data);
-                decl.watch(data, identifier, gaia.$$update);
-                console.log("~ register update listener:", data + "." + identifier);
+                decl.watch(data, identifier, function() {
+                    if (x) console.log("~ member changed, rebind needed");
+                    gaia.$$update();
+                });
+//                console.log("~ register update listener:", data + "." + identifier);
             }
             if (!data) return;
             value = data[identifier];
@@ -217,13 +224,11 @@ Expression.prototype.parseFunction = function() {
             } while (this.isChar(","));
             if (!this.isChar(")")) throw "function parameters not closed: " + this.s;
         }
-        console.log("~ parseFunction:", params, this.s);
         var x = this.parseMember()
           , value;
         return function(data) {
             var that = this;
-            console.log("~ fun.exec", this, data, params);
-            value = data.apply(data, params.map(function(param, i) {return param.call(that, that.data);}));
+            value = data.apply(data, params.map(function(param, i) {return param.call(gaia.$$data, gaia.$$data);}));
             return x ? x.call(this, value) : value;
         }
     }

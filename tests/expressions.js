@@ -9,6 +9,7 @@ test("Expression test - atomic", function() {
                 name: "John"
               , age: 23
               , tags: ["cool", "imaginary"]
+              , displayName: function(age) { return ["John Connor", age].join() }
             }
           , fun: function(s) { return s || "Buhh"; }
           , fun2: function(s) { return function() { return s || "Buhh"; } }
@@ -27,8 +28,7 @@ test("Expression test - atomic", function() {
     deepEqual(gaia.parse("[42, 'bar']")(), [42, "bar"], "[42, 'bar']");
 
     // Accessing Member
-    e = new Expression("num");
-    equal(e(data), 42, "data. " + e.$source);
+    equal(gaia.parse("num")(data), 42, "data. num (accessing member/number)");
 
     e = new Expression("str");
     equal(e(data), "foo", "data. " + e.$source);
@@ -47,7 +47,10 @@ test("Expression test - atomic", function() {
     equal(gaia.parse("biz")(data), undefined, "data.biz.f.x.c");
 
     // Member - not exists
-    equal(gaia.parse("user.foo")(data), undefined, "data. ");
+    equal(gaia.parse("user.foo")(data), undefined, "data. (member not exists)");
+
+    // complex
+    equal(gaia.parse("fun(user.displayName(42))")(data), data.fun(data.user.displayName(42)), "data. fun(data. user.displayName(42)) (complex, recursive)");
 
 });
 
