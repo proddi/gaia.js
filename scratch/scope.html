@@ -18,7 +18,7 @@
     </ul>
 
     <span use="Header" name="xxx"
-         title="foo.first | upper"
+         title="[foo.first, foo.last] | join | upper"
          data-description="a description would be nice">template placer</span>
 
     <div use="Header" name="yyy">
@@ -56,7 +56,7 @@
         <tt>First name | upper: {{ foo.first | upper }}</tt><br>
         <tt>Last name | lower: {{ foo.last | lower }}</tt><br>
         <tt>Age: {{ foo.age }}</tt><br>
-        <tt>joined: {{ [foo.first, foo.last, foo.age] | join }}</tt><br>
+        <tt>joined: {{ [foo.first | upper, foo.last | lower, foo.age] | join }}</tt><br>
     </div>
 
     <p>last modified: {{ document.lastModified }}</p>
@@ -221,7 +221,10 @@ modules.push(function(node, next) {
               , scope = this
               ;
             expr(scope, function(val) {
-                if (ign) return;
+                if (ign) {
+                    ign = false;
+                    return;
+                }
                 n.value = val;
             });
             n.addEventListener("keyup", function(ev) {
