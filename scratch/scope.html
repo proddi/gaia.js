@@ -56,7 +56,7 @@
         <tt>First name | upper: {{ foo.first | upper }}</tt><br>
         <tt>Last name | lower: {{ foo.last | lower }}</tt><br>
         <tt>Age: {{ foo.age }}</tt><br>
-        <tt>joined: {{ [foo.first2] }}</tt><br>
+        <tt>joined: {{ [foo.first, foo.last, foo.age] | join }}</tt><br>
     </div>
 
     <p>last modified: {{ document.lastModified }}</p>
