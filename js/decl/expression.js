@@ -19,20 +19,21 @@ var Expression = function(s) {
     var expr = this;
     var f = function(data, update) {
         var f = function() {
+            var oldData = gaia.$$data;
             gaia.$$data = data;
             var value = fun.apply(this, arguments);
-            delete gaia.$$data;
+            gaia.$$data = oldData;
             return value;
         }
         if (!update) return f.call({}, data);
         var scope = new ExecutedExpression(expr);
         gaia.$$update = function() {
-            update(fun.call({}, data));
+            update(f.call({}, data));
         }
         scope.exec = function() {
-            return fun.call({}, data);
+            return f.call({}, data);
         };
-        update(fun.call(scope, data));
+        update(f.call(scope, data));
         delete gaia.$$update;
         return scope;
     };
@@ -114,8 +115,7 @@ Expression.prototype.parseArray = function() {
         } while (this.isChar(","));
         if (!this.isChar("]")) throw new SyntaxError("array isn't closed: " + this.s);
         return function() {
-            var that = this;
-            return elements.map(function(el) {return el.call(that, that.data);});
+            return elements.map(function(el) {return el.call(gaia.$$data, gaia.$$data);});
         }
     }
 };
@@ -177,7 +177,6 @@ Expression.prototype.parseFunction = function() {
         var x = this.parseMember()
           , value;
         return function(data) {
-            var that = this;
             value = data.apply(data, params.map(function(param, i) {return param.call(gaia.$$data, gaia.$$data);}));
             return x ? x.call(this, value) : value;
         }

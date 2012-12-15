@@ -112,6 +112,10 @@ test("Expression test - setter", function() {
 //    e = new Expression("user.name | upper");
 //    throws(e.$set(data, "Doe"), ReferenceError, "Write an expression with filter throws exception.");
 
+    // arrays
+//    e = gaia.parse("[user.name]");
+//    e.$set(data, "Jason");
+//    ReferenceError expected
 });
 
 test("Expression test - bindings", function() {
@@ -125,6 +129,7 @@ test("Expression test - bindings", function() {
       , e
       , sequence = [];
 
+    // simple
     e = gaia.parse("user.name");
     sequence.push("init");
     e(data, function(value) {
@@ -134,6 +139,19 @@ test("Expression test - bindings", function() {
     e.$set(data, "Jason");
     sequence.push("$set.done");
     equal(sequence.join("|"), "init|value:John|$set|value:Jason|$set.done", "checking linking sequence");
+
+    // array param
+    data.user.name = "John";
+    var seq2 = [];
+    e = gaia.parse("[user.name]");
+    seq2.push("init");
+    e(data, function(value) {
+        seq2.push("value:" + value);
+    })
+    seq2.push("set");
+    data.user.name = "Jason";
+    seq2.push("set.done");
+    equal(seq2.join("|"), "init|value:John|set|value:Jason|set.done", "checking linking sequence");
 
 });
 
