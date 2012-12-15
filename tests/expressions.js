@@ -18,6 +18,8 @@ test("Expression test - atomic", function() {
 
     // Number
     equal(gaia.parse("42")(), 42, "42");
+    equal(gaia.parse("23.42")(), 23.42, "23.42");
+    equal(gaia.parse("23.42e+12")(), 23.42e+12, "23.42e+12");
 
     // String
     equal(gaia.parse("'foo'")(), "foo", "'foo'");
@@ -52,9 +54,8 @@ test("Expression test - atomic", function() {
     // complex
     equal(gaia.parse("fun(user.displayName(42))")(data), data.fun(data.user.displayName(42)), "data. fun(data. user.displayName(42)) (complex, recursive)");
 
-debugger;
     // Complex
-    equal(gaia.parse("fun(user.tags)")(data), "imaginary", "data. fun(user.tags)[1]");
+    equal(gaia.parse("fun(user.tags)[1]")(data), "imaginary", "data. fun(user.tags)[1]");
 
 });
 

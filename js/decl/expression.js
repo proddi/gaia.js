@@ -1,10 +1,9 @@
-var ExecutedExpression = function(expression, fun) {
+var ExecutedExpression = function(expression) {
     this.expression = expression;
 }
 
 var Expression = function(s) {
     this.s = s;
-    this.len = s.length;
 
     var fun = this.parseExpression(true)
      || this.parseEOL()
@@ -51,15 +50,9 @@ Expression.prototype.isChar = function(c) {
     }
 }
 
-Expression.prototype.isPos = function(pos) {
-    return (this.len - pos) === this.s.length;
-}
-
 Expression.prototype.parseExpression = function(trimming) {
     if (trimming) {
         this.s = this.s.trim();
-        this.lenBack = this.len;
-        this.len = this.s.length;
     }
 
     var fun = (
@@ -74,40 +67,6 @@ Expression.prototype.parseExpression = function(trimming) {
     return filter && function(data) {
         return filter.call(this, fun.call(this, data));
     } || fun;
-/*
-//    console.log("~ parseExpression:", '"' + this.s + '"', trimming);
-    var fun = (
-            this.parseFunction()
-         || this.parseMember()
-         || this.parseNumber()
-         || this.parseString()
-         || this.parseDotOperator()
-         || this.parseArray()
-         || this.parseFilter()
-        );
-
-//    console.log("~ parseExpression.end:", '"' + this.s + '"');
-    if (fun && this.s) {
-//    console.log("~ parseExpression.end2:", '"' + this.s + '"');
-        var nextFun = this.parseExpression();
-        if (nextFun) {
-            if (trimming) this.len = this.lenBack;
-            var f = function(value) {
-                return nextFun.call(this, fun.call(this, value));
-            }
-            f.$set = nextFun.$set ? function(scope, value) {
-//                console.log("!", nextFun.$set, fun, arguments);
-                return nextFun.$set.call(this, fun.call(this, scope), value);
-            } : function() {
-                throw new ReferenceError("Invalid left-hand side in assignment near:", this.s);
-            };
-            return f;
-        }
-    }
-
-    if (trimming) this.len = this.lenBack;
-    return fun;
-*/
 }
 
 Expression.prototype.parseDotOperator = function() {
@@ -117,10 +76,10 @@ Expression.prototype.parseDotOperator = function() {
 };
 
 Expression.prototype.parseNumber = function() {
-    var match = /^([\d]+)/.exec(this.s);
+    var match = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/.exec(this.s);
     if (match) {
         this.s = this.s.substr(match[0].length);
-        var value = parseFloat(match[1]);
+        var value = parseFloat(match[0]);
 //        console.log("~ parseNumber:", value, this.s);
         return function() {
             return value;
@@ -133,7 +92,6 @@ Expression.prototype.parseString = function() {
     if (match) {
         this.s = this.s.substr(match[0].length);
         var value = match[1];
-//        console.log("~ parseString:", '"' + value + '"', this.s);
         return function() {
             return value;
         }
@@ -142,7 +100,6 @@ Expression.prototype.parseString = function() {
     if (match) {
         this.s = this.s.substr(match[0].length);
         var value = match[1];
-//        console.log("~ parseString:", "'" + value + "'", this.s);
         return function() {
             return value;
         }
@@ -151,22 +108,14 @@ Expression.prototype.parseString = function() {
 
 Expression.prototype.parseArray = function() {
     if (this.isChar("[")) {
-        if (this.isPos(1)) { // declaring an array
-            var elements = [];
-            do {
-                elements.push(this.parseExpression(true) || function() {});
-            } while (this.isChar(","));
-            if (!this.isChar("]")) throw "array isn't closed: " + this.s;
-            return function() {
-                var that = this;
-                return elements.map(function(el) {return el.call(that, that.data);});
-            }
-        } else { // selector
-            var keyFun = this.parseExpression();
-            if (!this.isChar("]")) throw "array isn't closed: " + this.s;
-            return function(data) {
-                return data[keyFun.call(this, this.data)];
-            }
+        var elements = [];
+        do {
+            elements.push(this.parseExpression(true) || function() {});
+        } while (this.isChar(","));
+        if (!this.isChar("]")) throw new SyntaxError("array isn't closed: " + this.s);
+        return function() {
+            var that = this;
+            return elements.map(function(el) {return el.call(that, that.data);});
         }
     }
 };
@@ -182,11 +131,12 @@ Expression.prototype.parseIdentifier = function() {
         var x = this.parseMember()
           , value;
         var f = function(data) {
-            if (gaia.$$update) {
+            var updateFun = gaia.$$update;
+            if (updateFun) {
                 data = decl._prepareArray(data);
                 decl.watch(data, identifier, function() {
                     if (x) console.log("~ member changed, rebind needed");
-                    gaia.$$update();
+                    updateFun();
                 });
 //                console.log("~ register update listener:", data + "." + identifier);
             }
@@ -222,7 +172,7 @@ Expression.prototype.parseFunction = function() {
             do {
                 params.push(this.parseExpression(true) || function() {});
             } while (this.isChar(","));
-            if (!this.isChar(")")) throw "function parameters not closed: " + this.s;
+            if (!this.isChar(")")) throw new SyntaxError("function parameters not closed: " + this.s);
         }
         var x = this.parseMember()
           , value;
@@ -237,7 +187,7 @@ Expression.prototype.parseFunction = function() {
 Expression.prototype.parseMemberArray = function() {
     if (this.isChar("[")) {
         var keyFun = this.parseExpression();
-        if (!this.isChar("]")) throw "array isn't closed: " + this.s;
+        if (!this.isChar("]")) throw new SyntaxError("array isn't closed: " + this.s);
         var x = this.parseMember()
           , value;
         return function(data) {
@@ -252,14 +202,14 @@ Expression.prototype.parseFilter = function() {
     if (match) {
         this.s = this.s.substr(match[0].length);
         var filter = this.filters[match[1]];
-        if (!filter) throw SyntaxError("Unknown filter " + match[1]);
+        if (!filter) throw new ReferenceError("Unknown filter " + match[1]);
         var params = [undefined];
         // additional params?
         if (this.isChar("(")) {
             do {
                 params.push(this.parseExpression(true) || function() {});
             } while (this.isChar(","));
-            if (!this.isChar(")")) throw SyntaxError("filter parameters not closed: " + this.s);
+            if (!this.isChar(")")) throw new SyntaxError("filter parameters not closed: " + this.s);
         }
 
         var x = this.parseFilter()
@@ -288,7 +238,7 @@ Expression.prototype.parseEOL = function() {
     this.s = "";
     return function(data) {
         console.error("Syntax error near " + '"' + line + '"');
-        return SyntaxError("Syntax error near " + '"' + line + '"');
+        throw new SyntaxError("Syntax error near " + '"' + line + '"');
     };
 }
 
