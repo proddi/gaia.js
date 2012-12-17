@@ -12,13 +12,16 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <div scope="Twitter" name="twitter" limit="5" query="{{ q }}"></div>
+    <div scope="Twitter" name="twitter" limit="5" query="{{q}}"></div>
 
     <ul class="list" style="width: 500px; margin: 0 auto">
-        <li class="tweet3">
-            <span>{{ twitter.tweets | count }} Tweets:</span>
-            <input model="q" placeholder="query">
-            <a onclick="twitter.refresh()">refresh</a>
+        <li class="tweetHeader">
+            <div>
+                <span>{{ twitter.tweets | count }} Tweets:</span>
+                <input model="q" placeholder="query">
+                <a onclick="twitter.refresh()">refresh</a>
+            </div>
+            <div>Search term is "{{q}}"</div>
         </li>
         <li repeat="tweet in twitter.tweets" class="tweet">
             <div class="header">
@@ -34,8 +37,7 @@
     </ul>
 </body>
 <script>
-var q = "love";
-
+window.q = "love";
 gaia.compile(document.body)(document.body);
 </script>
 </html>

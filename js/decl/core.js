@@ -130,7 +130,7 @@
                     scope = new scope(this, n);
                     console.log("Creating scope from function", scope);
                 }
-                console.log("~ scope.linking", scope, prop);
+//                console.log("~ scope.linking", scope, prop);
                 if (prop) this[prop] = scope;
                 next(scope);
             });
@@ -148,6 +148,7 @@
             next(function(n, next) {
                 var ign
                   , scope = this
+                  , handle
                   ;
                 expr(scope, function(val) {
                     if (ign) {
@@ -156,9 +157,13 @@
                     }
                     n.value = val;
                 });
-                n.addEventListener("keyup", function(ev) {
+                function update() {
                     ign = true;
                     expr.$set(scope, n.value || "");
+                };
+                n.addEventListener("keyup", function(ev) {
+                    handle && clearTimeout(handle);
+                    handle = setTimeout(update, 500); // magic number
                 });
                 next(scope);
             });
@@ -320,10 +325,10 @@
 
         // link function
         return function(node, scope) {
-            console.time('linking');
+//            console.time('linking');
             scope = scope || window;
             linker.call(scope, node, function() {});
-            console.timeEnd('linking');
+//            console.timeEnd('linking');
         };
     };
 
