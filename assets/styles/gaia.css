@@ -4,8 +4,8 @@ body, input {
 *[template],
 *[repeat],
 *[use]{
-    d_isplay: none !important;
-    opacity: .33;
+    display: none !important;
+    o_pacity: .33;
     background: bisque;
 }
 h2 {

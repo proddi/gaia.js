@@ -18,10 +18,11 @@ var Twitter = function(parent, node) {
 Twitter.prototype.refresh = function() {
     if (this._noRefresh) return;
     var that = this
-      , url = 'http://search.twitter.com/search.json?q=' + this.query + '&rpp=' + this.limit + '&includ_e_entities=true&res_ult_type=mixed'
+      , url = 'http://search.twitter.com/search.json?q=' + encodeURIComponent(this.query) + '&rpp=' + this.limit + '&includ_e_entities=true&res_ult_type=mixed'
       ;
     this._xhr && this._xhr.abort();
     this._xhr = $.getJSON(url + '&callback=?', function(result) {
+    console.log(result);
         that._xhr = undefined;
         that.tweets = result.results;
     });

@@ -20,9 +20,19 @@ body {
     font-size: 14px;
     border-top: #DDD 1px solid;
     padding: 8px 12px;
+    position: relative;
 }
 .tweet:hover {
     background-color: #EEE;
+}
+.tweet img.author {
+    position: absolute;
+    padding-top: 2px;
+}
+.tweet .header,
+.tweet .content,
+.tweet .footer {
+    padding-left: 55px;
 }
 .tweet .author {
     font-weight: bold;

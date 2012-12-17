@@ -279,6 +279,7 @@ Expression.prototype.filters = {
         var s = {
             fullDate: "EEEE, MMMM d,y"
         }[format] || format || "ddd MMMM d yy - h:m:s ap";
+        if (!(date instanceof Date)) date = new Date(date);
         return x.reduce(function(s, token) {return s.replace(token, date[token]());}, s);
     }
 };

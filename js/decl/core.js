@@ -182,6 +182,20 @@
         }
     });
     */
+    // proceed {{ img src=expressions }}
+    modules.push(function(node, next) {
+        if (1 === node.nodeType && "IMG" === node.nodeName) {
+            console.log("~ proceed IMG", node, node.getAttribute("src"));
+            var src = gaia.parseText(node.getAttribute("src"));
+            return function(node, next) {
+                node.setAttribute("src", src(this));
+                console.log(node.src);
+            }
+        } else {
+            next();
+        }
+    });
+
     // proceed {{ expressions }}
     modules.push(function(node, next) {
         function decode(str) {

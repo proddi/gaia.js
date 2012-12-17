@@ -19,19 +19,20 @@
             <div>
                 <span>{{ twitter.tweets | count }} Tweets:</span>
                 <input model="q" placeholder="query">
-                <a onclick="twitter.refresh()">refresh</a>
+                <a href="#" onclick="window.twitter.refresh(); return false;">refresh</a>
             </div>
             <div>Search term is "{{q}}"</div>
         </li>
         <li repeat="tweet in twitter.tweets" class="tweet">
+            <img class="author" src="{{ tweet.profile_image_url }}">
             <div class="header">
-                <span class="author">{{ tweet.from_user_name }}</span> <a href="" class="author_address">@{{ tweet.from_user }}</a>
+                <span class="author">{{ tweet.from_user_name }}</span> <a href="#" class="author_address">@{{ tweet.from_user }}</a>
             </div>
             <div class="content">
                 <span class="text">{{ tweet.text }}</span>
             </div>
             <div class="footer">
-                <span class="date">{{ tweet.created_at }}</span>
+                <span class="date">{{ tweet.created_at | date }}</span>
             </div>
         </li>
     </ul>
