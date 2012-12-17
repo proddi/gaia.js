@@ -1,0 +1,36 @@
+body {
+    background-color: #CDD;
+}
+.list {
+    list-style-type: none;
+    padding: 0;
+    background-color: white;
+    border: #DDD 1px solid;
+    b_order-top-color: #EEE;
+    b_order-bottom-color: #BBB;
+    -webkit-border-radius: 5px;
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15)!important;
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.15)!important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15)!important;
+}
+.tweet {
+    font-size: 14px;
+    border-top: #DDD 1px solid;
+    padding: 8px 12px;
+}
+.tweet:hover {
+    background-color: #EEE;
+}
+.tweet .author {
+    font-weight: bold;
+}
+.tweet .author_address {
+    color: #888;
+    text-decoration: none;
+}
+.tweet .footer {
+    color: #888;
+    text-align: right;
+    font-size: .8em;
+}
+

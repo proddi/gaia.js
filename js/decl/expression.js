@@ -270,6 +270,9 @@ Expression.prototype.filters = {
     join: function(data, sep) {
         return data.join(sep);
     },
+    count: function(data) {
+        return data.length;
+    },
     date: function(date, format) {
         var x = ["ap", "AP", "mm", "m", "hh", "h", "ss", "s", "yyyy", "yy", "zzz", "z", "dddd", "ddd", "dd", "d", "MMMM", "MMM", "MM", "M"]
           ;

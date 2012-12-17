@@ -75,7 +75,4 @@ var gaia = {};
         return new Scope();
     };
 
-    gaia.compile = function() {
-    };
-
 })();

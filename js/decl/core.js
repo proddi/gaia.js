@@ -77,7 +77,7 @@
 
                 collectionExpr(scope, function(collection) {
                     collection = decl._prepareArray(collection);
-                    console.log("~ collection eval:", collectionExpr.$source, "=", collection);
+//                    console.log("~ collection eval:", collectionExpr.$source, "=", collection);
 
                     // remove old instances
                     while ((instance = instances.shift())) {
@@ -121,14 +121,17 @@
         if (node.hasAttribute("scope")) {
             var expr = new Expression(node.getAttribute("scope"));
             node.removeAttribute("scope");
-            console.log("~ [scope]", expr.$source);
+            var prop = node.getAttribute("name");
+            node.removeAttribute("name");
+            console.log("~ [scope] as " + prop, expr.$source);
             next(function(n, next) {
                 var scope = expr(this);
                 if ("function" === typeof scope) {
-                    scope = new scope(this);
+                    scope = new scope(this, n);
                     console.log("Creating scope from function", scope);
                 }
-                console.log("~ scope.linking", scope);
+                console.log("~ scope.linking", scope, prop);
+                if (prop) this[prop] = scope;
                 next(scope);
             });
         } else {
@@ -317,8 +320,10 @@
 
         // link function
         return function(node, scope) {
+            console.time('linking');
             scope = scope || window;
             linker.call(scope, node, function() {});
+            console.timeEnd('linking');
         };
     };
 

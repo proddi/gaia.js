@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter search example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <script src="../../js/decl.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="Twitter.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <link rel="stylesheet" href="tweets.css">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
+</head>
+<body>
+    <div scope="Twitter" name="twitter" limit="5" query="{{ q }}"></div>
+
+    <ul class="list" style="width: 500px; margin: 0 auto">
+        <li class="tweet3">
+            <span>{{ twitter.tweets | count }} Tweets:</span>
+            <input model="q" placeholder="query">
+            <a onclick="twitter.refresh()">refresh</a>
+        </li>
+        <li repeat="tweet in twitter.tweets" class="tweet">
+            <div class="header">
+                <span class="author">{{ tweet.from_user_name }}</span> <a href="" class="author_address">@{{ tweet.from_user }}</a>
+            </div>
+            <div class="content">
+                <span class="text">{{ tweet.text }}</span>
+            </div>
+            <div class="footer">
+                <span class="date">{{ tweet.created_at }}</span>
+            </div>
+        </li>
+    </ul>
+</body>
+<script>
+var q = "love";
+
+gaia.compile(document.body)(document.body);
+</script>
+</html>
