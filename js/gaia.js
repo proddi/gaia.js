@@ -33,8 +33,13 @@ var gaia = {};
     script.src = gaiaNode.src.replace(/\/gaia.js/, "/decl/expression.js");
     script.type = "text/javascript";
     gaiaNode.parentNode.appendChild(script);
+    console.warn("~ gaia.js added decl/expressions.js, but it's unstable. Need to improve it!");
 
-    console.warn("~ gaia.js added decl/expressions.js, but it's unstable. Fix needed!");
+    var script = document.createElement('script');
+    script.src = gaiaNode.src.replace(/\/gaia.js/, "/decl/core.js");
+    script.type = "text/javascript";
+    gaiaNode.parentNode.appendChild(script);
+    console.warn("~ gaia.js added decl/core.js, but it's unstable. Need to improve it!");
 
     gaia.parse = function(expr) {
         return new Expression(expr);
@@ -68,6 +73,9 @@ var gaia = {};
         function Scope() {}
         Scope.prototype = proto;
         return new Scope();
+    };
+
+    gaia.compile = function() {
     };
 
 })();
