@@ -247,6 +247,12 @@
     });
 
     // traverser -------------------------------------------------------------------------------------------------------
+    /**
+     * Traverser for compiling dom structure.
+     *
+     * @param {DOMNode} node
+     * @returns {Function} Linker function
+     */
     function traverser(node) {
         var nodes = []
           , l
@@ -264,8 +270,14 @@
             }
             next(this);
         };
-    };
+    }
 
+    /**
+     * Compiles a dom structure into a link function
+     *
+	 * @param {DOMNode} node A dom node
+	 * @returns {Function} Linker function executed on given node.
+     */
     function __compile(node) {
         var i = 0
           , module
@@ -304,6 +316,11 @@
     var templates = {
     };
 
+    /**
+     * Parses templates.
+     *
+     * @param {DOMNode} node A dom node.
+     */
     function parseTemplates(node) {
         var nodes = []
           , n = node.querySelectorAll("[template]");
@@ -327,13 +344,17 @@
         });
     }
 
+    /**
+     * Public compile function for compiling a dom structure into a linking function.
+     *
+     * @param {DOMNode} node A dom node
+     * @returns {Function} A linking function.
+     */
     function compile(node) {
 
         console.time('compile');
-
         var templates = parseTemplates(node);
         var linker = __compile(node);
-
         console.timeEnd('compile');
 
         // link function
@@ -343,7 +364,7 @@
             linker.call(scope, node, function() {});
 //            console.timeEnd('linking');
         };
-    };
+    }
 
     gaia.compile = compile;
 
