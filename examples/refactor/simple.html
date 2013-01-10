@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple test for refactor</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <script src="../../js/decl.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
+</head>
+<body>
+    <div>
+        <h2>{{ document.title }}</h2>
+        <p --lazy="buh.js">{{ "This is the title of that document." }}</p>
+    </div>
+    <div loader="./FooController.js" name="foo" title="FOO" loading-indicator="loading"></div>
+    <div loader="./BarController.js" name="bar" title="BAR" loading-indicator="loading"></div>
+    <div loader="./FooController.js" name="biz" title="BIZ" loading-indicator="loading"></div>
+    <footer>Ths is the end of page {{ document.title }}</footer>
+    <p>You have to disable websecurity via chrome cmdline: <code> --disable-web-security --allow-file-access-from-files</code></p>
+    <div template="loading"><p>Loading...</p></div>
+</body>
+<script>
+
+// Lazy singleton
+var __LazyThings = {};
+var Lazy = {
+    get: function(src, callback) {
+        console.log("~ get", src, __LazyThings[src]);
+        setTimeout(function() { // simulate latency
+            (__LazyThings[src] = __LazyThings[src] || $.get(src + "?" + Math.random(100000000), "script").then(function(data) { return eval(data); }))
+            .done(callback.bind(undefined, undefined))
+            .fail(callback.bind(undefined, true))
+            ;
+        }, 1000 + Math.random() * 2500);
+    }
+};
+
+
+    gaia.compile(document.body)(document.body);
+</script>
+</html>

@@ -1,5 +1,3 @@
-
-
 (function() {
     var modules = [];
 
@@ -11,6 +9,46 @@
         next();
     });
 
+    // loader - module
+    modules.push(function(node, next) {
+        if (node.hasAttribute("loader")) {
+            var expr = gaia.parseText(node.getAttribute("loader"))
+              , propName = node.getAttribute("name")
+              , indicator = node.getAttribute("loading-indicator")
+              , indicatorNode
+              ;
+            node.removeAttribute("loader");
+            node.removeAttribute("name");
+
+            next(function(n, next) {
+                var scope = this;
+                var loaded;
+                Lazy.get(expr(this), function(err, Controller) {
+                    loaded = true;
+                    if ("function" === typeof Controller) {
+                        var cntl = new Controller(scope, n);
+                        console.log("~ [loader] controller created", cntl);
+                        if (propName) scope[propName] = cntl;
+                    } else {
+                        console.error("~ [loader] is not a function", Controller);
+                    }
+                    if (indicatorNode) n.removeChild(indicatorNode);
+                    next(scope);
+                });
+                // add loading indicator if needed
+                if (indicator && !loaded) {
+                    var linker = templates[indicator](function(template, linker) {
+                        indicatorNode = template;
+                        n.appendChild(template);
+                        linker.call(scope, template, function() {});
+                    });
+                }
+            });
+        } else {
+            next();
+        }
+    });
+
     // use - template
     modules.push(function(node, next) {
         if (node.hasAttribute("use")) {
@@ -20,7 +58,7 @@
               ;
             node.removeAttribute("use");
             node.removeAttribute("name");
-            var linker = templates[name](node);
+            var linker = templates[name](node, true);
 
             for (var i = 0, attrib; (attrib = node.attributes[i]); i++) {
                 console.log("~~ ", attrib.name, "=", attrib.value);
@@ -260,15 +298,9 @@
             }
         }
         return links.length && function(node, next) {
-            var i = 0
-              , link
-              ;
-            function f(scope) {
-                if ((link = links[i++])) {
-                    link[1].call(scope, node.children[link[0]], f);
-                }
+            for (var i=0, link; (link = links[i++]);) {
+                link[1].call(this, node.children[link[0]], function() {});
             }
-            f(this);
             next(this);
         };
     };
@@ -279,6 +311,7 @@
           , fun
           , links = []
           ;
+
         function f() {
             if ((module = modules[i++])) {
                 fun = module(node, function(fun) {
@@ -304,10 +337,11 @@
             }
             f(this);
             next(this);
-        };
+        } || function() {};
     }
 
-    var templates = {};
+    var templates = {
+    };
 
     function parseTemplates(node) {
         var nodes = []
@@ -318,11 +352,15 @@
             node.removeAttribute("template");
             node.parentNode.removeChild(node);
             var linker = __compile(node);
-            templates[name] = function(placeholder) {
-                var clone = node.cloneNode(true);
-                placeholder.parentNode.insertBefore(clone, placeholder);
-                placeholder.parentNode.removeChild(placeholder);
-                return linker;
+            templates[name] = function(cloner) {
+                cloner(node.cloneNode(true), linker);
+//                if (replaceNode) {
+//                    placeholder.appendChild(clone);
+//                } else {
+//                    placeholder.parentNode.insertBefore(clone, placeholder);
+//                    placeholder.parentNode.removeChild(placeholder);
+//                }
+//                return linker;
             };
             console.log("~ found template:", name, node);
         });
