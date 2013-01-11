@@ -28,16 +28,16 @@ var __LazyThings = {};
 var Lazy = {
     get: function(src, callback) {
         console.log("~ get", src, __LazyThings[src]);
-        setTimeout(function() { // simulate latency
+//        setTimeout(function() { // simulate latency
             (__LazyThings[src] = __LazyThings[src] || $.get(src + "?" + Math.random(100000000), "script").then(function(data) { return eval(data); }))
             .done(callback.bind(undefined, undefined))
             .fail(callback.bind(undefined, true))
             ;
-        }, 1000 + Math.random() * 2500);
+//        }, 1000 + Math.random() * 2500);
     }
 };
 
 
-    gaia.compile(document.body)(document.body);
+gaia.compile(document.body)(document.body);
 </script>
 </html>
