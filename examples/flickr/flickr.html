@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flickr example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <script src="../../js/decl.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="Flickr.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <link rel="stylesheet" href="flickr.css">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
+</head>
+<body>
+    <div scope="Flickr" name="flickr" limit="5" tags="{{ tags }}"></div>
+
+    <div class="flickr">
+        <div class="header">
+            <div>
+                <span>{{ flickr.images | count }} Images:</span>
+                <input model="tags" placeholder="enter tags">
+                <a href="#" onclick="window.flickr.refresh(); return false;">refresh</a>
+            </div>
+            <div>{{ flickr.title }} ({{ flickr.status }})</div>
+        </div>
+        <ul class="images">
+            <li repeat="image in flickr.images">
+                <a href="{{ image.link }}">
+                    <img class="author" src="{{ image.media.m }}" onload="this.className = 'loaded'; this.parentNode.parentNode.style.width = this.width + 'px';">
+                </a>
+                <p>{{ image.title }}</p>
+            </li>
+        </ul>
+    </div>
+</body>
+<script>
+window.tags = "mount rainier";
+gaia.compile(document.body)(document.body);
+</script>
+</html>
