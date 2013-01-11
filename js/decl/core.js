@@ -209,77 +209,38 @@
         next();
     });
 
-    /*
-    // fill #test nodes
-    modules.push(function(node, next) {
-        next();
-        if (1 === node.nodeType && "SPAN" === node.nodeName) {
-            return function(node) {
-                node.innerText = "*" + node.innerText + "*";
-            };
-        }
-    });
-    */
-    // proceed {{ img src=expressions }}
-    modules.push(function(node, next) {
-        if (1 === node.nodeType && "IMG" === node.nodeName) {
-            console.log("~ proceed IMG", node, node.getAttribute("src"));
-            var src = gaia.parseText(node.getAttribute("src"));
-            return function(node, next) {
-                node.setAttribute("src", src(this));
-                console.log(node.src);
-            }
-        } else {
-            next();
-        }
-    });
-
     // proceed {{ expressions }}
     modules.push(function(node, next) {
         function decode(str) {
              return str && unescape(str.replace(/\+/g, " "));
         }
-        if (0 === node.children.length) {
-            var rx = /{{(.*?)}}/g
-              , text = node.innerText
-              , isText = undefined !== text && rx.test(text)
-              , textPieces = undefined !== text && text.split(rx).map(function(piece, i) { return i%2 ? new Expression(piece) : piece })
-              , href = node.href && decode(node.href)
-              , isHref = undefined !== href && rx.test(href)
-              , style = node.style.cssText && decode(node.style.cssText)
-              , proceedStyle = undefined !== style && rx.test(style)
-              ;
+        var rx = /{{(.*?)}}/g
+          , text = !node.children.length && node.innerText && gaia.parseText(node.innerText, false)
+          , src = node.src && gaia.parseText(decode(node.getAttribute("src")), false)
+          , href = node.href && gaia.parseText(decode(node.getAttribute("href")), false)
+          , styles = node.getAttribute("styles") && gaia.parseText(node.getAttribute("styles"), false)
+          , className = node.className && gaia.parseText(node.className, false)
+          ;
 
-            if (isText || isHref || proceedStyle) {
-                return function(node, next) {
-                    var scope = this;
-                    if (isText) {
-                        var text = textPieces.slice();
-                        textPieces.forEach(function(piece, i) {
-                            if (piece instanceof Function) piece(scope, function(value) {
-    //                            console.log("~ update", value, i);
-                                text[i] = value;
-                                node.innerHTML = text.join("");
-                            });
-                        });
-    //                    node.innerHTML = textPieces.map(function(piece) { return piece instanceof Function ? piece(scope) : piece }).join("");
-    //                    node.innerHTML = text.replace(rx, function(all, match) {
-    //                        return "<i>" + decl.solve(scope, match.trim()) + "</i>";
-    //                    });
-                    }
-                    if (isHref) {
-                        node.href = href.replace(rx, function(all, match) {
-                            return decl.solve(scope, match.trim());
-                        });
-                    }
-                    if (proceedStyle) {
-                        node.style.cssText = style.replace(rx, function(all, match) {
-                            return decl.solve(scope, match.trim());
-                        });
-                    }
-                    next(scope);
-                };
-            }
+        if (text || src|| href || styles || className) {
+            next(function(node, next) {
+                text && text(this, function(value) {
+                    node.innerHTML = value;
+                });
+                src && src(this, function(value) {
+                    node.setAttribute("src", value);
+                });
+                href && href(this, function(value) {
+                    node.href = value;
+                });
+                styles && styles(this, function(value) {
+                    node.style.cssText = value;
+                });
+                className && className(this, function(value) {
+                    node.className = value;
+                });
+                next(this);
+            });
         } else {
             next();
         }

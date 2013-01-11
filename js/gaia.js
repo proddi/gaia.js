@@ -64,22 +64,29 @@ var gaia = {};
         return new Expression(expr);
     };
 
-    gaia.parseText = function(text) {
+    /**
+     * Compiles a free string into an expression e.g. "The lazy {{ animal }} jumps over the {{ color }} dog".
+     *
+     * @param {String} The expression to be parsed
+     * @returns {Function} The linking function for that expression.
+     */
+    gaia.parseText = function(text, notFoundValue) {
         var rx = /{{(.*?)}}/g
           , pieces = text.split(rx).map(function(piece, i) { return i%2 ? new Expression(piece) : piece })
           ;
         text = pieces.slice();
 
-        return function(data, update) {
+//console.log("--->", text, pieces.join(""), text.length < 2, arguments.length > 1, notFoundValue);
+        return text.length > 1 && function(data, update) {
             pieces.forEach(function(piece, i) {
                 if (piece instanceof Function) piece(data, function(value) {
                     text[i] = value;
                     update && update(text.join(""));
                 });
-                return text.join("");
+                return text.join(""); // ?????
             });
             return text.join("");
-        }
+        } || arguments.length < 2 && function() { return text.join(""); } || notFoundValue;
     };
 
 	/**

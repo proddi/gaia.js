@@ -14,7 +14,7 @@
 <body>
     <div scope="Flickr" name="flickr" limit="5" tags="{{ tags }}"></div>
 
-    <div class="flickr">
+    <div class="flickr {{ flickr.images | count }}_images">
         <div class="header">
             <div>
                 <span>{{ flickr.images | count }} Images:</span>
@@ -31,6 +31,7 @@
                 </a>
             </div>
         </div>
+        <a href="visit">visit us</a>
     </div>
 </body>
 <script>
