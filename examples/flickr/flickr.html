@@ -23,18 +23,18 @@
             </div>
             <div>{{ flickr.title }} ({{ flickr.status }})</div>
         </div>
-        <ul class="images">
-            <li repeat="image in flickr.images">
-                <a href="{{ image.link }}">
-                    <img class="author" src="{{ image.media.m }}" onload="this.className = 'loaded'; this.parentNode.parentNode.style.width = this.width + 'px';">
+        <div class="images">
+            <div repeat="image in flickr.images">
+                <a href="{{ image.link }}" class="image">
+                    <img class="author" src="{{ image.media.m }}" onload="this.className = 'loaded'; this.parentNode.style.width = this.width + 'px';">
+                    <p>{{ image.title }}</p>
                 </a>
-                <p>{{ image.title }}</p>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </body>
 <script>
-window.tags = "mount rainier";
+window.tags = "kitty";
 gaia.compile(document.body)(document.body);
 </script>
 </html>

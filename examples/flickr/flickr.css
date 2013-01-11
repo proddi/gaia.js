@@ -18,15 +18,19 @@ body {
     padding: 2px;
     margin: 2px 4px;
     display: inline-block;
+}
+
+.flickr .image {
     position: relative;
 }
+
 .flickr .images > * p {
     position: absolute;
+    bottom: 5px; left: 0px; right: 0px;
+    padding: 3px 8px 6px 8px;
     margin: 0;
-    bottom: 7px; left: 2px; right: 2px;
     background: rgba(32, 32, 32, .7);
     color: white;
-    padding: 3px 8px 6px 8px;
     font-size: .8em;
     font-weight: bold;
 
