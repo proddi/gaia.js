@@ -9,7 +9,11 @@
         next();
     });
 
-    // loader - module
+    /**
+     * loader
+     * @module
+     * @see directive/g:loader
+     */
     modules.push(function(node, next) {
         if (node.hasAttribute("loader")) {
             var expr = gaia.parseText(node.getAttribute("loader"))
@@ -83,7 +87,11 @@
         }
     });
 
-    // proceed repeat
+    /**
+     * repeat
+     * @module
+     * @see directive/g:repeat
+     */
     modules.push(function(node, next) {
         if (node.hasAttribute("repeat")) {
             var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
@@ -142,6 +150,7 @@
                     });
 
                     collection.$on("remove", function(item, idx) {
+                        // TODO: for lazy remove (finishing transitions) unbind template and remove node in setTimeout
                         var node = parentNode.children[idx];
                         parentNode.removeChild(node);
                         // TODO: remove from instances
@@ -154,7 +163,11 @@
         }
     });
 
-    // Scope feature
+    /**
+     * Scope support
+     * @module
+     * @see directive/g:scope
+     */
     modules.push(function(node, next) {
         if (node.hasAttribute("scope")) {
             var expr = new Expression(node.getAttribute("scope"));
@@ -168,7 +181,6 @@
                     scope = new scope(this, n);
                     console.log("Creating scope from function", scope);
                 }
-//                console.log("~ scope.linking", scope, prop);
                 if (prop) this[prop] = scope;
                 next(scope);
             });
@@ -212,7 +224,9 @@
     /**
      * Show/hide module providing support for g:show and g:hide attributes.
      * @module
+     * @example <div g:show="isLoading">Loading...</div>
      * @see http://stackoverflow.com/questions/272360/does-opacity0-have-exactly-the-same-effect-as-visibilityhidden
+     * @see directive/g:show
      */
     modules.push(function(node, next) {
         var show = node.hasAttribute("g:show") && gaia.parse(node.getAttribute("g:show"));
@@ -228,7 +242,16 @@
         }
     });
 
-    // proceed {{ expressions }}
+    /**
+     * Common attribute module to provide expression support for inline text and for following attributes: src, href,
+     * styles, className
+     * @module
+     * @example <a href="{{ image_url }}"><img src="images/{{ image_id }}"></a>
+     * @see directive/g:src
+     * @see directive/g:href
+     * @see directive/g:styles
+     * @see directive/g:class
+     */
     modules.push(function(node, next) {
         var text = !node.children.length && node.innerText && gaia.parseText(node.innerText, false)
           , src = node.src && gaia.parseText(node.getAttribute("src"), false)
