@@ -80,6 +80,7 @@ test("Expression test - text", function() {
     equal(gaia.parseText("I'm {{user.age}} year's old {{user.name}}.")(data), "I'm 23 year's old John.", "I'm {{user.age}} year's old {{user.name}}.");
 
 });
+
 test("Expression test - setter", function() {
     // test dataset
     var data = {
@@ -184,3 +185,11 @@ test("Expression test - filters", function() {
 
 });
 
+test("Expression test - logic", function() {
+    equal(gaia.parse('0 ? "not null" : "null"')(), "null", '0 ? "not null" : "null" - ? operator');
+    equal(gaia.parse('0')(), 0, '0 - precondition');
+    equal(gaia.parse('!0')(), true, '!0 -> true');
+    equal(gaia.parse('!!0')(), false, '!!0 -> false');
+    equal(gaia.parse('0 == 0')(), true, '0 == 0 -> true');
+    equal(gaia.parse('0 === 0')(), true, '0 === 0 -> true');
+});

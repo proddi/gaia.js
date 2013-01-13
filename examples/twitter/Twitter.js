@@ -22,9 +22,17 @@ Twitter.prototype.refresh = function() {
       ;
     this._xhr && this._xhr.abort();
     this._xhr = $.getJSON(url + '&callback=?', function(result) {
-    console.log(result);
         that._xhr = undefined;
-        that.tweets = result.results;
+        if (that.error = result.error) {
+            console.error(that.error);
+            that.tweets = [];
+        } else {
+            console.log(result);
+            that.tweets = result.results;
+        }
+        that.loading = false;
     });
+    this.loading = true;
+    that.error = false;
 };
 

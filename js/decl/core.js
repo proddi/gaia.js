@@ -209,15 +209,30 @@
         next();
     });
 
+    /**
+     * Show/hide module providing support for g:show and g:hide attributes.
+     * @module
+     * @see http://stackoverflow.com/questions/272360/does-opacity0-have-exactly-the-same-effect-as-visibilityhidden
+     */
+    modules.push(function(node, next) {
+        var show = node.hasAttribute("g:show") && gaia.parse(node.getAttribute("g:show"));
+        if (show) {
+            next(function(node, next) {
+                show && show(this, function(value) {
+                    node.style.display = value ? "" : "none";
+                });
+                next(this);
+            });
+        } else {
+            next();
+        }
+    });
+
     // proceed {{ expressions }}
     modules.push(function(node, next) {
-        function decode(str) {
-             return str && unescape(str.replace(/\+/g, " "));
-        }
-        var rx = /{{(.*?)}}/g
-          , text = !node.children.length && node.innerText && gaia.parseText(node.innerText, false)
-          , src = node.src && gaia.parseText(decode(node.getAttribute("src")), false)
-          , href = node.href && gaia.parseText(decode(node.getAttribute("href")), false)
+        var text = !node.children.length && node.innerText && gaia.parseText(node.innerText, false)
+          , src = node.src && gaia.parseText(node.getAttribute("src"), false)
+          , href = node.href && gaia.parseText(node.getAttribute("href"), false)
           , styles = node.getAttribute("styles") && gaia.parseText(node.getAttribute("styles"), false)
           , className = node.className && gaia.parseText(node.className, false)
           ;

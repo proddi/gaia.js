@@ -12,7 +12,7 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <div scope="Twitter" name="twitter" limit="5" query="{{q}}"></div>
+    <div scope="Twitter" name="twitter" limit="8" query="{{q}}"></div>
 
     <ul class="list" style="width: 500px; margin: 0 auto">
         <li class="tweetHeader">
@@ -23,8 +23,10 @@
             </div>
             <div>Search term is "{{q}}"</div>
         </li>
+        <div class="tweet error" g:show="twitter.error">{{ twitter.error }}</div>
+        <div class="tweet info" g:show="twitter.loading">Loading...</div>
         <li repeat="tweet in twitter.tweets" class="tweet">
-            <img class="author" src="{{ tweet.profile_image_url }}">
+            <a href="https://twitter.com/{{ tweet.from_user }}/status/{{ tweet.id_str }}"><img class="author" src="{{ tweet.profile_image_url }}"></a>
             <div class="header">
                 <span class="author">{{ tweet.from_user_name }}</span> <a href="#" class="author_address">@{{ tweet.from_user }}</a>
             </div>
