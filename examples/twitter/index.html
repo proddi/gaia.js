@@ -24,7 +24,7 @@
             <div>Search term is "{{q}}"</div>
         </li>
         <div class="tweet error" g:show="twitter.error">{{ twitter.error }}</div>
-        <div class="tweet info" g:show="twitter.loading">Loading...</div>
+        <div class="tweet loading info" g:show="twitter.loading">Loading...</div>
         <li repeat="tweet in twitter.tweets" class="tweet">
             <a href="https://twitter.com/{{ tweet.from_user }}/status/{{ tweet.id_str }}"><img class="author" src="{{ tweet.profile_image_url }}"></a>
             <div class="header">
