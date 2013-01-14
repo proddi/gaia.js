@@ -47,8 +47,9 @@ function loadData() {
      * @param {Function} callback
      */
     decl.watch = function(o, prop, callback) {
-		var getter = o.__lookupGetter__(prop),
-			setter = o.__lookupSetter__(prop);
+		var getter = o.__lookupGetter__(prop)
+		  , setter = o.__lookupSetter__(prop)
+		  ;
 		if (!setter || !getter) {
 			var callbacks = [];
 			var value = o[prop];
@@ -61,21 +62,22 @@ function loadData() {
 			};
 			setter.watch = function(callback) {
 				callbacks.push(callback);
-			};
-			setter.unwatch = function() {
-				throw new Error("Not implemented");
+				return function() {
+			        var i = callbacks.indexOf(callback);
+			        if (i>=0) callbacks.splice(i, 1);
+			    }
 			};
 			getter = function() {
 				return value;
 			};
 			o.__defineGetter__(prop, getter);
 			o.__defineSetter__(prop, setter);
-			// cleanup, loose bindings on object remove
-			(o.__looseBinds = o.__looseBinds || []).push(function() {
-                callbacks.splice(0, callbacks.length);
-			});
+// cleanup, loose bindings on object remove
+//            (o.__looseBinds = o.__looseBinds || []).push(function() {
+//                callbacks.splice(0, callbacks.length);
+//            });
 		}
-		setter.watch(callback);
+		return setter.watch(callback);
 	};
 
 	/**

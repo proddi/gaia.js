@@ -1,8 +1,43 @@
+/*
+ *
+ *
+ */
+
+var Block1 = []
+  , Block2 = [];
+
+var Pattern = function(regexp) {
+    this._regexp = regexp;
+}
+Pattern.prototype.match = function(s) {
+    var r = this._regexp.exec(s);
+    r.pattern = this;
+    return r;
+}
+
+Block1.push(
+    new Pattern(/(?:\/)?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g)
+)
+
+
+// Block.parse("foo.bar.biz");
+
 var ExecutedExpression = function(expression) {
     this.expression = expression;
 }
 
 var Expression = function(s) {
+
+    var match = { index: -1 }
+    for (var i = 0, m, pattern; (pattern = Block1[i++]);) {
+        m = pattern.match(s);
+        if (m && m.index < match.index) {
+            match = pattern;
+        }
+    }
+
+    console.log(match);
+
     this.s = s;
 
     var fun = this.parseExpression(true)
@@ -10,7 +45,7 @@ var Expression = function(s) {
       ;
 
     if (this.s) {
-        var syntax = this.s;
+        var syntax =lastIndex = posWithinLine; this.s;
         fun = function() {
             return new SyntaxError("Unexpected token " + '"' + syntax + '" in "' + s + '"');
         };
