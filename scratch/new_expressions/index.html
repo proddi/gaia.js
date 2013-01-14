@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<title>Insert title here</title>
+    <script type="text/javascript" src="../../js/decl.js"></script>
+    <script type="text/javascript" src="../../js/decl/expression.js"></script>
+</head>
+<body>
+
+<script>
+function e(expr, scope) {
+    var compiled = new Expression(expr)
+      , value = compiled(scope);
+    console.log("e>", compiled.$source, "=" ,value, "           (" + compiled.$compiled + ")");
+}
+
+function e2(expr, scope) {
+    var compiled = new Expression(expr)
+      , value = compiled(scope, function(value) {
+            console.log("e2>", compiled.$source, "=" , value, "           (" + compiled.$compiled + ")");
+        });
+    return value;
+}
+
+window.foo = {
+    bar: {
+        biz: "BIZ"
+    }
+};
+
+//console.log(compileExpression("0 + foo + 1")());
+//e('("foo.bar.biz" ? "true" : false) + foo.bar.biz + foo + biz.foo.bar');
+//e2('("foo.bar.biz" ? "true" : false) + foo.bar.biz + foo + biz.foo.bar');
+var v2 = e2('42');
+//console.log(compileExpression(' 0 +   foo.bar.biz + "bar.foo"')());
+
+</script>
+
+</body>
+</html>

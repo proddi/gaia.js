@@ -3,277 +3,153 @@
  *
  */
 
-var Block1 = []
-  , Block2 = [];
+var tests = [];
 
-var Pattern = function(regexp) {
-    this._regexp = regexp;
-}
-Pattern.prototype.match = function(s) {
-    var r = this._regexp.exec(s);
-    r.pattern = this;
-    return r;
-}
+var passThrough = function(match) { return match; };
+// strings
+tests.push([/(".*?")/g, passThrough]);
+tests.push([/('.*?')/g, passThrough]);
 
-Block1.push(
-    new Pattern(/(?:\/)?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g)
-)
+// key words
+tests.push([/\b(?:abstract|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|final|finally|for|function|goto|if|implements|in|instanceof|interface|native|new|null|private|protected|prototype|public|return|static|super|switch|synchronized|throw|throws|this|transient|true|try|typeof|var|volatile|while|with)\b/g,
+    passThrough
+]);
 
+// numbers
+tests.push([/\b[+-]?(?:(?:0x[A-Fa-f0-9]+)|(?:(?:[\d]*\.)?[\d]+(?:[eE][+-]?[\d]+)?))u?(?:(?:int(?:8|16|32|64))|L)?\b/g,
+    passThrough
+]);
 
-// Block.parse("foo.bar.biz");
-
-var ExecutedExpression = function(expression) {
-    this.expression = expression;
-}
-
-var Expression = function(s) {
-
-    var match = { index: -1 }
-    for (var i = 0, m, pattern; (pattern = Block1[i++]);) {
-        m = pattern.match(s);
-        if (m && m.index < match.index) {
-            match = pattern;
+// members
+tests.push([/(?:\/)?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g,
+    function(match, s, report) {
+        var x = match.split(".");
+        if (1 === x.length) {
+            // @TODO: report binding
+            report.binding(match);
+            return "$$scope." + match;
         }
+        report.binding.apply(undefined, x);
+        return "$$get.call($$scope,"+ x.splice(0, x.length - 1).map(function(e) { return '"' + e + '"'; })+")." + x;
     }
+]);
 
-    console.log(match);
+var $$_get = function() {
+    var scope = this
+      , elements = Array.prototype.slice.call(arguments)
+      , element
+      ;
+    while (element = elements.shift()) {
+        scope = scope[element];
+        if (undefined === scope) scope = {};
+    }
+    return scope;
+}
 
-    this.s = s;
-
-    var fun = this.parseExpression(true)
-     || this.parseEOL()
+var Expression = function(src) {
+    var s = src
+      , parsed
+      , compiled = ""
+      , match
+      , bindings = {}
+      , reporting = {
+            binding: function() {
+                var scope = bindings
+                  , elements = Array.prototype.slice.call(arguments)
+                  , element
+                  ;
+                while (element = elements.shift()) {
+                    scope[element] = scope[element] || {};
+                    scope = scope[element];
+                }
+            }
+          , 
+        }
       ;
 
-    if (this.s) {
-        var syntax =lastIndex = posWithinLine; this.s;
-        fun = function() {
-            return new SyntaxError("Unexpected token " + '"' + syntax + '" in "' + s + '"');
+    var ii = 99;
+    while(s && ii) {
+        match = { // @TODO: prepare to match complete line
+            index: 1000000
+          , parse: function(a) { return a; }
+          , "0": ""
         };
+        for (var i = 0, m, pattern; (pattern = tests[i++]);) {
+            pattern[0].lastIndex = undefined;
+            m = pattern[0].exec(s);
+            if (m && m.index < match.index) {
+                match = m;
+                match.parse = pattern[1];
+            }
+        }
+        parsed = match.parse(match[0], s, reporting);
+        compiled += s.substr(0, match.index) + parsed;
+        s = s.substr(match.index + match[0].length || 99999999);
+        
+        if (!ii--) throw "Parsing engine is looping like a rollercoster :(";
     }
+    var f = function(scope, callback) {
+        var $$scope = scope || window
+          , $$get = $$_get
+          , f = function() {
+                try {
+                    return eval(compiled);
+                } catch(e) {
+                    return e;
+                }
+            }
+          ;
+        if (!callback) return f();
 
-    var expr = this;
-    var f = function(data, update) {
-        var f = function() {
-            var oldData = gaia.$$data;
-            gaia.$$data = data;
-            var value = fun.apply(this, arguments);
-            gaia.$$data = oldData;
-            return value;
-        }
-        if (!update) return f.call({}, data);
-        var scope = new ExecutedExpression(expr);
-        gaia.$$update = function() {
-            update(f.call({}, data));
-        }
-        scope.exec = function() {
-            return f.call({}, data);
-        };
-        update(f.call(scope, data));
-        delete gaia.$$update;
-        return scope;
+        f.$unbind = watchTree($$scope, bindings, function() { callback(f()); });
+        f.$bindings = bindings;
+        callback(f());
+        return f;
     };
-    f.$set = function(data, value) {
-        return fun.$set.call(undefined, data, value);
-    };
-    f.$source = s;
+    f.$set = function(scope, value) {
+        var $$scope = scope || window
+          , $$get = $$_get // @QUESTION: Should we use a non tolerant getter to prevent setting on undefined?
+          , $$value = value;
+        try {
+            return eval(compiled + " = $$value");
+        } catch(e) {
+            return e;
+        }
+    }
+    f.$source = src;
+    f.$compiled = compiled;
     return f;
 };
 
-Expression.prototype.isChar = function(c) {
-    if (c === this.s.charAt(0)) {
-        this.s = this.s.substr(1);
-        return true;
-    }
+function countMembers(o) {
+    var i = 0;
+    for (var key in o) i++;
+    return i;
 }
 
-Expression.prototype.parseExpression = function(trimming) {
-    if (trimming) {
-        this.s = this.s.trim();
-    }
-
-    var fun = (
-            this.parseIdentifier()
-         || this.parseNumber()
-         || this.parseString()
-         || this.parseArray()
-//         || this.parseFilter()
-        );
-
-    var filter = this.parseFilter();
-    return filter && function(data) {
-        return filter.call(this, fun.call(this, data));
-    } || fun;
-}
-
-Expression.prototype.parseDotOperator = function() {
-    if (this.isChar(".")) {
-        return this.parseExpression();
-    }
-};
-
-Expression.prototype.parseNumber = function() {
-    var match = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/.exec(this.s);
-    if (match) {
-        this.s = this.s.substr(match[0].length);
-        var value = parseFloat(match[0]);
-//        console.log("~ parseNumber:", value, this.s);
-        return function() {
-            return value;
-        }
-    }
-};
-
-Expression.prototype.parseString = function() {
-    var match = /^"(.*?)"/.exec(this.s); // needs to be improved
-    if (match) {
-        this.s = this.s.substr(match[0].length);
-        var value = match[1];
-        return function() {
-            return value;
-        }
-    }
-    var match = /^'(.*?)'/.exec(this.s); // needs to be improved
-    if (match) {
-        this.s = this.s.substr(match[0].length);
-        var value = match[1];
-        return function() {
-            return value;
-        }
-    }
-};
-
-Expression.prototype.parseArray = function() {
-    if (this.isChar("[")) {
-        var elements = [];
-        do {
-            elements.push(this.parseExpression(true) || function() {});
-        } while (this.isChar(","));
-        if (!this.isChar("]")) throw new SyntaxError("array isn't closed: " + this.s);
-        return function() {
-            return elements.map(function(el) {return el.call(gaia.$$data, gaia.$$data);});
-        }
-    }
-};
-
-/**
- * Parses an identifier.
- */
-Expression.prototype.parseIdentifier = function() {
-    var match = /^([A-Z-a-z_][\w]*)/.exec(this.s);
-    if (match) {
-        this.s = this.s.substr(match[0].length);
-        var identifier = match[1];
-        var x = this.parseMember()
-          , value;
-        var f = function(data) {
-            var updateFun = gaia.$$update;
-            if (updateFun) {
-                data = decl._prepareArray(data);
-                decl.watch(data, identifier, function() {
-                    if (x) console.log("~ member changed, rebind needed");
-                    updateFun();
-                });
-//                console.log("~ register update listener:", data + "." + identifier);
+function watchTree(scope, tree, callback) {
+    var unbinds = [];
+    for (var key in tree) unbinds.push((function(key) {
+        var cb = countMembers(tree[key]) ? function() {
+            unwatchTree && unwatchTree();
+            if (scope[key]) {
+                unwatchTree = watchTree(scope[key], tree[key], callback);
             }
-            if (!data) return;
-            value = data[identifier];
-            return x ? x.call(this, value) : value;
+            callback();
+        } : callback;
+        var unwatch = decl.watch(scope, key, cb)
+          , unwatchTree;
+        if (scope[key]) {
+            unwatchTree = watchTree(scope[key], tree[key], callback);
         }
-        f.$set = function(data, value) {
-            if (!data) {
-                console.warn("~ Expression.$set - ignoring setting", identifier, "on", data);
-                return;
-            }
-            return x ? x.$set && x.$set.call(this, data[identifier], value) : (data[identifier] = value);
-        };
-        return f;
+        return function() {
+            unwatchTree && unwatchTree();
+            unwatch();
+        }
+    })(key));
+    return function() {
+        for (var i=0, unbind; (unbind = unbinds[i++]);) unbind();
     }
-};
-
-Expression.prototype.parseMember = function() {
-    return (
-        this.isChar(".") && (
-            this.parseIdentifier()
-        )
-     || this.parseFunction()
-     || this.parseMemberArray()
-    );
-};
-
-Expression.prototype.parseFunction = function() {
-    if (this.isChar("(")) {
-        var params = [];
-        if (!this.isChar(")")) {
-            do {
-                params.push(this.parseExpression(true) || function() {});
-            } while (this.isChar(","));
-            if (!this.isChar(")")) throw new SyntaxError("function parameters not closed: " + this.s);
-        }
-        var x = this.parseMember()
-          , value;
-        return function(data) {
-            value = data.apply(data, params.map(function(param, i) {return param.call(gaia.$$data, gaia.$$data);}));
-            return x ? x.call(this, value) : value;
-        }
-    }
-};
-
-Expression.prototype.parseMemberArray = function() {
-    if (this.isChar("[")) {
-        var keyFun = this.parseExpression();
-        if (!this.isChar("]")) throw new SyntaxError("array isn't closed: " + this.s);
-        var x = this.parseMember()
-          , value;
-        return function(data) {
-            value = data[keyFun.call(this, this.data)];
-            return x ? x.call(this, value) : value;
-        }
-    }
-};
-
-Expression.prototype.parseFilter = function() {
-    var match = /^ *\| *([A-Z-a-z_][\w]*)/.exec(this.s);
-    if (match) {
-        this.s = this.s.substr(match[0].length);
-        var filter = this.filters[match[1]];
-        if (!filter) throw new ReferenceError("Unknown filter " + match[1]);
-        var params = [undefined];
-        // additional params?
-        if (this.isChar("(")) {
-            do {
-                params.push(this.parseExpression(true) || function() {});
-            } while (this.isChar(","));
-            if (!this.isChar(")")) throw new SyntaxError("filter parameters not closed: " + this.s);
-        }
-
-        var x = this.parseFilter()
-          , value;
-//        return filter && function(data) {
-//            return filter.call(this, fun.call(this, data));
-//        } || fun;
-
-
-//        console.log("~ parseFilter:", filter, params, '"' + this.s + '"');
-        var f = function(data) {
-            var that = this;
-            params[0] = data;
-            value = filter.apply(this, params.map(function(param, i) {return i ? param.call(that, that.data) : param;}));
-            return x ? x.call(this, value) : value;
-        }
-        f.$set = function() {
-            throw new ReferenceError("Invalid left-hand side in assignment with filter");
-        };
-        return f;
-    }
-};
-
-Expression.prototype.parseEOL = function() {
-    var line = this.s;
-    this.s = "";
-    return function(data) {
-        console.error("Syntax error near " + '"' + line + '"');
-        throw new SyntaxError("Syntax error near " + '"' + line + '"');
-    };
 }
 
 Expression.prototype.filters = {

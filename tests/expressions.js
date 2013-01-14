@@ -98,7 +98,7 @@ test("Expression test - setter", function() {
     // Number
     e = new Expression("user.age");
     equal(e(data), 23, "data.user.age - precondition");
-    e.$set(data, 42)
+    e.$set(data, 42);
     equal(data.user.age, 42, "data.user.age is 42 (via JS)");
     equal(e(data), 42, "[data.]user.age is 42 (via expression)");
 
