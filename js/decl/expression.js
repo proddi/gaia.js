@@ -5,7 +5,7 @@
 
 var tests = [];
 
-var passThrough = function(match) { return match; };
+var passThrough = function(match) { return match[0]; };
 // strings
 tests.push([/(".*?")/g, passThrough]);
 tests.push([/('.*?')/g, passThrough]);
@@ -20,12 +20,29 @@ tests.push([/\b[+-]?(?:(?:0x[A-Fa-f0-9]+)|(?:(?:[\d]*\.)?[\d]+(?:[eE][+-]?[\d]+)
     passThrough
 ]);
 
+
+// filter - params '| join(":")'
+tests.push([/\| *([A-Za-z][A-Za-z0-9_]*)\((.*?)\)/g,
+    function(match, s, report) {
+        report.filter(match[1], match[2]);
+        return "";
+    }
+]);
+
+// filter - simple "| upper"
+tests.push([/\| *([A-Za-z][A-Za-z0-9_]*)/g,
+    function(match, s, report) {
+        report.filter(match[1]);
+        return "";
+    }
+]);
+
 // members
 tests.push([/(?:\/)?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g,
     function(match, s, report) {
-        var x = match.split(".");
+        var match = match[0]
+          , x = match.split(".");
         if (1 === x.length) {
-            // @TODO: report binding
             report.binding(match);
             return "$$scope." + match;
         }
@@ -52,6 +69,7 @@ var Expression = function(src) {
       , compiled = ""
       , match
       , bindings = {}
+      , filter = ""
       , reporting = {
             binding: function() {
                 var scope = bindings
@@ -63,7 +81,11 @@ var Expression = function(src) {
                     scope = scope[element];
                 }
             }
-          , 
+          , filter: function(name, args) {
+                var code = "$_filters." + name + "(#(*)#" + (args ? "," + args : "") + ")";
+                filter = filter ? code.replace("#(*)#", filter) : code;
+                console.log("~ reported filter", name, args, " --> ", filter);
+            }
         }
       ;
 
@@ -71,7 +93,7 @@ var Expression = function(src) {
     while(s && ii) {
         match = { // @TODO: prepare to match complete line
             index: 1000000
-          , parse: function(a) { return a; }
+          , parse: function(match) { return match[0]; }
           , "0": ""
         };
         for (var i = 0, m, pattern; (pattern = tests[i++]);) {
@@ -82,18 +104,20 @@ var Expression = function(src) {
                 match.parse = pattern[1];
             }
         }
-        parsed = match.parse(match[0], s, reporting);
+        parsed = match.parse(match, s, reporting);
         compiled += s.substr(0, match.index) + parsed;
         s = s.substr(match.index + match[0].length || 99999999);
         
         if (!ii--) throw "Parsing engine is looping like a rollercoster :(";
     }
+    var compiledWithFilter = filter ? filter.replace("#(*)#", compiled) : compiled;
     var f = function(scope, callback) {
         var $$scope = scope || window
+          , $_filters = Expression.prototype.filters
           , $$get = $$_get
           , f = function() {
                 try {
-                    return eval(compiled);
+                    return eval(compiledWithFilter);
                 } catch(e) {
                     return e;
                 }
