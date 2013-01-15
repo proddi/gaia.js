@@ -44,10 +44,10 @@ tests.push([/(?:\/)?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g,
           , x = match.split(".");
         if (1 === x.length) {
             report.binding(match);
-            return "$$scope." + match;
+            return "_$_scope." + match;
         }
         report.binding.apply(undefined, x);
-        return "$$get.call($$scope,"+ x.splice(0, x.length - 1).map(function(e) { return '"' + e + '"'; })+")." + x;
+        return "_$_get.call(_$_scope,"+ x.splice(0, x.length - 1).map(function(e) { return '"' + e + '"'; })+")." + x;
     }
 ]);
 
@@ -82,9 +82,8 @@ var Expression = function(src) {
                 }
             }
           , filter: function(name, args) {
-                var code = "$_filters." + name + "(#(*)#" + (args ? "," + args : "") + ")";
+                var code = "_$_filters." + name + "(#(*)#" + (args ? "," + args : "") + ")";
                 filter = filter ? code.replace("#(*)#", filter) : code;
-                console.log("~ reported filter", name, args, " --> ", filter);
             }
         }
       ;
@@ -112,9 +111,9 @@ var Expression = function(src) {
     }
     var compiledWithFilter = filter ? filter.replace("#(*)#", compiled) : compiled;
     var f = function(scope, callback) {
-        var $$scope = scope || window
-          , $_filters = Expression.prototype.filters
-          , $$get = $$_get
+        var _$_scope = scope || window
+          , _$_filters = Expression.prototype.filters
+          , _$_get = $$_get
           , f = function() {
                 try {
                     return eval(compiledWithFilter);
@@ -125,17 +124,17 @@ var Expression = function(src) {
           ;
         if (!callback) return f();
 
-        f.$unbind = watchTree($$scope, bindings, function() { callback(f()); });
+        f.$unbind = watchTree(_$_scope, bindings, function() { callback(f()); });
         f.$bindings = bindings;
         callback(f());
         return f;
     };
     f.$set = function(scope, value) {
-        var $$scope = scope || window
-          , $$get = $$_get // @QUESTION: Should we use a non tolerant getter to prevent setting on undefined?
-          , $$value = value;
+        var _$_scope = scope || window
+          , _$_get = $$_get // @QUESTION: Should we use a non tolerant getter to prevent setting on undefined?
+          , _$_value = value;
         try {
-            return eval(compiled + " = $$value");
+            return eval(compiled + " = _$_value");
         } catch(e) {
             return e;
         }
