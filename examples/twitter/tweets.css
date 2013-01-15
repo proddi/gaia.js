@@ -1,5 +1,6 @@
 body {
     background-color: #CDD;
+    overflow-y: scroll;
 }
 .error {
     color: red;
@@ -10,9 +11,28 @@ body {
     font-weight: bold;
 }
 
+.hidable {
+    opacity: 1;
+    -webkit-transition: opacity .3s ease-in-out;
+    -moz-transition: opacity .3s ease-in-out;
+    -o-transition: opacity .3s ease-in-out;
+    transition: opacity .3s ease-in-out;
+}
+.hidable.hidden {
+    opacity: 0;
+}
+
+body > .wrapper {
+    width: 500px;
+    margin: 0 auto;
+    border: 10px solid rgba(128, 128, 128, 0.1);
+    border-radius: 5px;
+}
 
 .list {
     list-style-type: none;
+    min-height: 12em;
+    margin: 0;
     padding: 0;
     background-color: white;
     border: #DDD 1px solid;
@@ -23,6 +43,9 @@ body {
 }
 .tweetHeader {
     padding: 8px 12px;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#f8f8f8), to(#dfdfdf));
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #bbb;
 }
 .tweet {
     font-size: 14px;
@@ -61,3 +84,31 @@ body {
     font-size: .8em;
 }
 
+/**********************/
+.loading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    top: 2em;
+    pointer-events: none;
+}
+.loading > span {
+    background-color: #ebebeb;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#efefef), to(#e8e8e8));
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+.loading > span > span {
+    background: url(assets/loading.gif) left center no-repeat;
+    padding-left: 20px;
+}
+
+.error {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    background-color: rgb(255, 231, 231);
+    padding: 5px 10px;
+}

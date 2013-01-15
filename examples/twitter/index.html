@@ -14,30 +14,40 @@
 <body>
     <div scope="Twitter" name="twitter" limit="8" query="{{q}}"></div>
 
-    <ul class="list" style="width: 500px; margin: 0 auto">
-        <li class="tweetHeader">
-            <div>
-                <span>{{ twitter.tweets | count }} Tweets:</span>
-                <input model="q" placeholder="query">
-                <a href="#" onclick="window.twitter.refresh(); return false;">refresh</a>
+    <div class="wrapper">
+        <ul class="list">
+            <li class="tweetHeader">
+                <div>
+                    <span>{{ twitter.tweets | count }} Tweets:</span>
+                    <input model="q" placeholder="query">
+                    <a href="#" onclick="window.twitter.refresh(); return false;">refresh</a>
+                </div>
+                <div>Search term is "{{q}}"</div>
+            </li>
+            <div style="position: relative; z-index: 1000">
+                <div style="position: absolute" class="error hidable{{ twitter.error ? '' : ' hidden' }}">
+                    {{ twitter.error || "" }}
+                </div>
+                <div style="position: absolute" class="loading hidable{{ twitter.loading ? '' : ' hidden' }}">
+                    <span><span>Loading...</span></span>
+                </div>
             </div>
-            <div>Search term is "{{q}}"</div>
-        </li>
-        <div class="tweet error" g:show="twitter.error">{{ twitter.error }}</div>
-        <div class="tweet loading info" g:show="twitter.loading">Loading...</div>
-        <li repeat="tweet in twitter.tweets" class="tweet">
-            <a href="https://twitter.com/{{ tweet.from_user }}/status/{{ tweet.id_str }}"><img class="author" src="{{ tweet.profile_image_url }}"></a>
-            <div class="header">
-                <span class="author">{{ tweet.from_user_name }}</span> <a href="#" class="author_address">@{{ tweet.from_user }}</a>
+            <div class="hidable{{ twitter.loading ? ' hidden' : '' }}">
+                <li repeat="tweet in twitter.tweets" class="tweet">
+                    <a href="https://twitter.com/{{ tweet.from_user }}/status/{{ tweet.id_str }}"><img class="author" src="{{ tweet.profile_image_url }}"></a>
+                    <div class="header">
+                        <span class="author">{{ tweet.from_user_name }}</span> <a href="#" class="author_address">@{{ tweet.from_user }}</a>
+                    </div>
+                    <div class="content">
+                        <span class="text">{{ tweet.text }}</span>
+                    </div>
+                    <div class="footer">
+                        <span class="date">{{ tweet.created_at | date }}</span>
+                    </div>
+                </li>
             </div>
-            <div class="content">
-                <span class="text">{{ tweet.text }}</span>
-            </div>
-            <div class="footer">
-                <span class="date">{{ tweet.created_at | date }}</span>
-            </div>
-        </li>
-    </ul>
+        </ul>
+    </div>
 </body>
 <script>
 window.q = "love";
