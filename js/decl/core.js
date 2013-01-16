@@ -18,7 +18,6 @@
     modules.push(function(node, next) {
         var init = node.hasAttribute("g:init") && gaia.parse(node.getAttribute("g:init"));
         if (init) {
-            console.log(init.$source, init.$compiled);
             next(function(node, next) {
                 init && init(this);
                 next(this);
