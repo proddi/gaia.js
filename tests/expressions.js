@@ -1,4 +1,6 @@
-test("Expression test - atomic", function() {
+module("Expressions");
+
+test("atomic", function() {
     // test dataset
     var data = {
             num: 42
@@ -59,7 +61,7 @@ test("Expression test - atomic", function() {
 
 });
 
-test("Expression test - text", function() {
+test("inline text", function() {
     // test dataset
     var data = {
             num: 42
@@ -81,7 +83,7 @@ test("Expression test - text", function() {
 
 });
 
-test("Expression test - setter", function() {
+test("setter", function() {
     // test dataset
     var data = {
             num: 42
@@ -119,7 +121,7 @@ test("Expression test - setter", function() {
 //    ReferenceError expected
 });
 
-test("Expression test - bindings", function() {
+test("bindings", function() {
     var data = {
             user: {
                 name: "John"
@@ -156,7 +158,10 @@ test("Expression test - bindings", function() {
 
 });
 
-test("Expression test - filters", function() {
+test("unbindings", function() {
+});
+
+test("filters", function() {
     var data = {
             json: {
                 n: 42,
@@ -185,7 +190,7 @@ test("Expression test - filters", function() {
 
 });
 
-test("Expression test - logic", function() {
+test("logic", function() {
     equal(gaia.parse('0 ? "not null" : "null"')(), "null", '0 ? "not null" : "null" - ? operator');
     equal(gaia.parse('0')(), 0, '0 - precondition');
     equal(gaia.parse('!0')(), true, '!0 -> true');

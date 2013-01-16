@@ -20,6 +20,8 @@ tests.push([/\b[+-]?(?:(?:0x[A-Fa-f0-9]+)|(?:(?:[\d]*\.)?[\d]+(?:[eE][+-]?[\d]+)
     passThrough
 ]);
 
+// object members
+tests.push([/\b([A-Za-z][A-Za-z0-9]*[ ]*:)\b/g, passThrough]);
 
 // filter - params '| join(":")'
 tests.push([/\| *([A-Za-z][A-Za-z0-9_]*)\((.*?)\)/g,

@@ -10,6 +10,25 @@
     });
 
     /**
+     * Expression specified in g:init will be exectuted on initialization time. No bindings will be applied.
+     * @module
+     * @example <div g:init="a=1">...</div>
+     * @see directive/g:init
+     */
+    modules.push(function(node, next) {
+        var init = node.hasAttribute("g:init") && gaia.parse(node.getAttribute("g:init"));
+        if (init) {
+            console.log(init.$source, init.$compiled);
+            next(function(node, next) {
+                init && init(this);
+                next(this);
+            });
+        } else {
+            next();
+        }
+    });
+
+    /**
      * loader
      * @module
      * @see directive/g:loader
@@ -108,7 +127,7 @@
 
             var iteratorExpr = new Expression(match[1])
               , collectionExpr = new Expression(match[2])
-              , linker = compile(node)
+              , compiled = compile(node)
               ;
 
             return function(n, next) {
@@ -126,27 +145,25 @@
 //                    console.log("~ collection eval:", collectionExpr.$source, "=", collection);
 
                     // remove old instances
-                    while ((instance = instances.shift())) {
-                        parentNode.removeChild(instance);
+                    while ((unbinder = instances.shift())) {
+//                        parentNode.removeChild(instance);
+                        unbinder();
+                        unbinder.detatch();
                     }
 
                     // create new instances
                     for (var i = 0, l = collection.length; i < l; i++) {
-                        var clone = node.cloneNode(true);
                         var cloneScope = gaia.scope(scope);
                         iteratorExpr.$set(cloneScope, collection[i]);
-                        linker(clone, cloneScope);
-                        parentNode.appendChild(clone);
-                        instances.push(clone);
+                        var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
+                        instances.push(unbinder);
                     }
 
                     collection.$on("add", function(item) {
-                        var clone = node.cloneNode(true);
                         var cloneScope = gaia.scope(scope);
                         iteratorExpr.$set(cloneScope, item);
-                        linker(clone, cloneScope);
-                        parentNode.appendChild(clone);
-                        instances.push(clone);
+                        var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
+                        instances.push(unbinder);
                     });
 
                     collection.$on("remove", function(item, idx) {
@@ -177,6 +194,7 @@
             console.log("~ [scope] as " + prop, expr.$source);
             next(function(n, next) {
                 var scope = expr(this);
+                if (!scope) console.warn('~ [scope] building failed because it\'s undefined (as result of "' + expr.$source + '")');
                 if ("function" === typeof scope) {
                     scope = new scope(this, n);
                     console.log("Creating scope from function", scope);
@@ -261,6 +279,7 @@
           ;
 
         if (text || src|| href || styles || className) {
+            src && node.removeAttribute("src"); // prevent error logs
             next(function(node, next) {
                 text && text(this, function(value) {
                     node.innerHTML = value;
@@ -385,25 +404,61 @@
     /**
      * Public compile function for compiling a dom structure into a linking function.
      *
-     * @param {DOMNode} node A dom node
+     * @param {DOMNode|String} node A dom node
      * @returns {Function} A linking function.
+     * @returns {Function.clone} Clones the compiled DOM fragment and returns a linking function.
+     *
+     * common workflows:
+     * compile(DOM)(scope)                                      // for existing nodes
+     * compile(DOM|string)(scope).append(parentNode)            // for fragments
+     * compile(DOM|string).clone()(scope).append(parentNode)    // for fragment clones
      */
     function compile(node) {
 
         console.time('compile');
         var templates = parseTemplates(node);
-        var linker = __compile(node);
+        var compiled = __compile(node);
         console.timeEnd('compile');
 
         // link function
-        return function(node, scope) {
+        var f = function(scope) {
 //            console.time('linking');
             scope = scope || window;
-            linker.call(scope, node, function() {});
+            var node = this;
+            /* var unbinder = */compiled.call(scope, node, function() {});
+            var unbinder = function() {
+                console.warn("Unbinder isn't implemented :(");
+                return;
+            };
+            unbinder.appendTo = function(target) {
+                target.appendChild(node);
+                return unbinder;
+            };
+            unbinder.detatch = function() {
+                node.parentNode && node.parentNode.removeChild(node);
+                return unbinder;
+            };
+            unbinder.node = node;
 //            console.timeEnd('linking');
+            return unbinder;
         };
+
+        var f2 = f.bind(node);
+        f2.clone = function() {
+            return f.bind(node.cloneNode(true));
+        };
+
+        return f2;
     }
 
-    gaia.compile = compile;
+    gaia.compile = function(data) {
+        if ("object" === typeof data) return compile(data);
+        if ("string" === typeof data) {
+            var wrap = document.createElement("div");
+            wrap.innerHTML = data;
+            return compile(wrap);
+        }
+        throw Error("Unknown data:", data);
+    }
 
 })();
