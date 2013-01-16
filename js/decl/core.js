@@ -19,8 +19,26 @@
         var init = node.hasAttribute("g:init") && gaia.parse(node.getAttribute("g:init"));
         if (init) {
             next(function(node, next) {
-                init && init(this);
+                init(this);
                 next(this);
+            });
+        } else {
+            next();
+        }
+    });
+
+    /**
+     * include
+     * @module
+     * @see directive/g:include
+     */
+    modules.push(function(node, next) {
+        if (node.hasAttribute("g:include")) {
+            var exprInclude = gaia.parseText(node.getAttribute("g:include"))
+            next(function(n, next) {
+                exprInclude(this, function(value) {
+                    n.innerText = "-->" + value;
+                });
             });
         } else {
             next();
@@ -302,6 +320,35 @@
         }
     });
 
+    /**
+     * Expression specified in g:init will be exectuted on initialization time. No bindings will be applied.
+     * @module
+     * @example <div g:init="a=1">...</div>
+     * @see directive/g:init
+     */
+    modules.push(function(node, next) {
+        var href = 1 === node.nodeType && "A" === node.nodeName && node.getAttribute("href")
+           ,watch = href && (/\{\{.*\}\}/.test(href) || !/^\w+:\//g.test(href))
+           ;
+
+        if (watch) {
+            console.log("-->", watch, href);
+            next(function(n, next) {
+                console.log("--> addEventListener", n);
+                n.addEventListener("click", function(ev) {
+                    var href = n.getAttribute("href");
+                    if (href && !/^\w+:\//g.test(href)) {
+                        ev.preventDefault();
+                        console.log("Click", n.getAttribute("href"), ev);
+                        gaia.routeProvider.push({}, href, href);
+                    }
+                }, false);
+                next(this);
+            });
+        } else {
+            next();
+        }
+    });
     // traverser -------------------------------------------------------------------------------------------------------
     /**
      * Traverser for compiling dom structure.

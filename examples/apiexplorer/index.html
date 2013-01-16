@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GAIA - API explorer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <script src="../../js/decl.js"></script>
+    <script src="../../js/decl/routeProvider.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <s2cript src="Twitter.js"></s2cript>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <l2ink rel="stylesheet" href="tweets.css">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
+    <script>
+        var baseTag = document.createElement("base");
+        baseTag.setAttribute("href", location.href);
+        document.head.appendChild(baseTag);
+    </script>
+</head>
+<body><div class="wrapper">
+    <h2>Path: {{ gaia.routeProvider.path }}</h2>
+    <div class="nav">
+        <ul>
+            <li repeat="directive in directives">
+                <a href="api/directive/{{ directive.link }}">{{ directive.name }}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="content" g:route="^api/:section/:id" g:include="{{ gaia.routeProvider.path }}">Content...</div>
+</div></body>
+<script>
+var directives = [{
+    name: "g:init"
+   ,link: "g:init"
+},{
+    name: "g:repeat"
+   ,link: "g:repeat"
+},{
+    name: "g:include"
+   ,link: "g:include"
+}];
+
+
+gaia.compile(document.body)({
+    gaia: gaia
+   ,directives: directives
+});
+</script>
+</html>
