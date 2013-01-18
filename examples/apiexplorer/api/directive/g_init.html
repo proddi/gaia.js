@@ -6,7 +6,9 @@
     <h2>Syntax:</h2>
     <pre class="interface">g:init="{expression}"</pre>
 
-    <p class="desc">Expression will be exectuted on initialization time. No bindings will be applied.</p>
+    <p class="desc">
+        Expression will be exectuted on initialization time. No bindings will be applied. DOMnode instance is available as <code>$this</code>.
+    </p>
 
     <h2>Usage:</h2>
     <pre class="code">
@@ -15,7 +17,9 @@
         </ol>
     </pre>
     <pre class="code">
-        <code><TAG g:init=""> ... </TAG></code>
+        <code>
+        <TAG g:init=""> ... </TAG>
+        </code>
     </pre>
 </article>
 

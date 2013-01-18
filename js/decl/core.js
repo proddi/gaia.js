@@ -19,8 +19,8 @@
     modules.push(function(node, next) {
         var init = node.hasAttribute("g:init") && gaia.parse(node.getAttribute("g:init"));
         if (init) {
-            next(function(node, next) {
-                init(this);
+            next(function(n, next) {
+                init.call(n, this);
                 next(this);
             });
         } else {
@@ -346,14 +346,11 @@
            ;
 
         if (watch) {
-            console.log("-->", watch, href);
             next(function(n, next) {
-                console.log("--> addEventListener", n);
                 n.addEventListener("click", function(ev) {
                     var href = n.getAttribute("href");
                     if (href && !/^\w+:\//g.test(href)) {
                         ev.preventDefault();
-                        console.log("Click", n.getAttribute("href"), ev);
                         gaia.routeProvider.push({}, href, href);
                     }
                 }, false);

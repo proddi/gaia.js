@@ -113,10 +113,11 @@ var Expression = function(src) {
     }
     var compiledWithFilter = filter ? filter.replace("#(*)#", compiled) : compiled;
     var f = function(scope, callback) {
-        var _$_scope = scope || window
-          , _$_filters = Expression.prototype.filters
-          , _$_get = $$_get
-          , f = function() {
+        var $this = this
+           ,_$_scope = scope || window
+           ,_$_filters = Expression.prototype.filters
+           ,_$_get = $$_get
+           ,f = function() {
                 try {
                     return eval(compiledWithFilter);
                 } catch(e) {
