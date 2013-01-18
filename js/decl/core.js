@@ -36,8 +36,21 @@
         if (node.hasAttribute("g:include")) {
             var exprInclude = gaia.parseText(node.getAttribute("g:include"))
             next(function(n, next) {
+                var include;
                 exprInclude(this, function(value) {
-                    n.innerText = "-->" + value;
+                    var scope = this;
+                    if (!value) {
+                        n.innerHTML = "";
+                    } else {
+                        if (include) {
+                            include.detatch();
+                            include();
+                            include = undefined;
+                        }
+                        gaia.load(value.replace(":", "_") + ".html", function(err, data) {
+                            include = gaia.compile(data)(scope).appendTo(n);
+                        });
+                    }
                 });
             });
         } else {

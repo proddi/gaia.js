@@ -9,7 +9,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <s2cript src="Twitter.js"></s2cript>
     <link rel="stylesheet" href="../../assets/styles/gaia.css">
-    <l2ink rel="stylesheet" href="tweets.css">
+    <link rel="stylesheet" href="assets/styles.css">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
     <script>
         var baseTag = document.createElement("base");
@@ -17,7 +17,11 @@
         document.head.appendChild(baseTag);
     </script>
 </head>
-<body><div class="wrapper">
+<body>
+<header>
+    <div>HEADER</div>
+</header>
+<div class="wrapper">
     <h2>Path: {{ gaia.routeProvider.path }}</h2>
     <div class="nav">
         <ul>
@@ -27,7 +31,12 @@
         </ul>
     </div>
     <div class="content" g:route="^api/:section/:id" g:include="{{ gaia.routeProvider.path }}">Content...</div>
-</div></body>
+
+</div>
+<footer>
+    <div>GaiaJS {{ gaia.version }}</div>
+</footer>
+</body>
 <script>
 var directives = [{
     name: "g:init"

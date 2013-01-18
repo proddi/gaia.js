@@ -1,0 +1,60 @@
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu'), url(http://themes.googleusercontent.com/static/fonts/ubuntu/v4/_xyN3apAT_yRRDeqB3sPRg.woff) format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Ubuntu Bold'), local('Ubuntu-Bold'), url(http://themes.googleusercontent.com/static/fonts/ubuntu/v4/0ihfXUL2emPh0ROJezvraD8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    color: #333;
+    font: 15px/22.5px Ubuntu, "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
+    overflow-y: scroll;
+    margin: 0;
+    background-color: #4078C7;
+}
+body > .wrapper,
+body > header > *,
+body > footer > * {
+    width: 950px;
+    margin: 0 auto;
+}
+
+body > header,
+body > footer {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    font-size: .85em;
+}
+
+body > .wrapper {
+    background-color: white;
+}
+
+.nav {
+    f_loat: left;
+    width: 250px;
+}
+
+
+.article .code {
+    background-color: #eee;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    white-space: normal;
+}
+.article .code ol {
+    margin: 0 0 0 33px;
+    padding: 5px;
+}
+.article .code li {
+    border-left: 1px solid #777;
+    padding-left: 5px;
+}

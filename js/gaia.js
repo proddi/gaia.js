@@ -1,4 +1,6 @@
-var gaia = {};
+var gaia = {
+    version: "0.1-prealpha"
+};
 
 (function() {
 
@@ -29,11 +31,19 @@ var gaia = {};
      * Loads a resource from a url.
      *
      * @param {String} url The url of the resource.
+     * @param {Function} callback The callback(err, data). If no callback specified, the function behaves synchronous.
      * @returns {String} Loaded content as string.
      *
      * @throws {String}
+     * @require {jQuery}
      */
-    gaia.load = function(url) {
+    gaia.load = function(url, callback) {
+        if (callback) {
+            return (__xhrs[url] = __xhrs[url] || $.get(url))
+            .done(callback.bind(undefined, undefined))
+            .fail(callback.bind(undefined, true))
+            ;
+        }
         var req = new XMLHttpRequest();
         req.open("GET", url, false); // Note synchronous get
         req.send(null);
@@ -42,6 +52,7 @@ var gaia = {};
         }
         return req.responseText;
     }
+    var __xhrs = {}; // cache for load
 
     // include expressions.js, core.js
     var scriptNodes = document.getElementsByTagName('script')
