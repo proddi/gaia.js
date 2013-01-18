@@ -3,7 +3,8 @@
 
     // prevents SCRIPT traverse
     modules.push(function(node, next) {
-        if ("SCRIPT" === node.nodeName) {
+        if ("SCRIPT" === node.nodeName
+            || node.hasAttribute("g:ignore")) {
             return;
         }
         next();
