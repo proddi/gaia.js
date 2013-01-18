@@ -11,19 +11,23 @@
   src: local('Ubuntu Bold'), local('Ubuntu-Bold'), url(http://themes.googleusercontent.com/static/fonts/ubuntu/v4/0ihfXUL2emPh0ROJezvraD8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
 }
 
+/*****************************************************************************
+ * LAYOUT & MAIN
+ *****************************************************************************/
 body {
-    -webkit-font-smoothing: antialiased;
+    margin: 0;
     color: #333;
     font: 15px/22.5px Ubuntu, "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
     overflow-y: scroll;
-    margin: 0;
-    background-color: #4078C7;
+    background: url(https://developer.cdn.mozilla.net/media/img/bg-content.png);
+    -webkit-font-smoothing: antialiased;
 }
-body > .wrapper,
-body > header > *,
-body > footer > * {
-    width: 950px;
-    margin: 0 auto;
+a {
+    color: #333;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
 }
 
 body > header,
@@ -35,26 +39,75 @@ body > footer {
 }
 
 body > .wrapper {
-    background-color: white;
 }
 
-.nav {
-    f_loat: left;
+#nav {
+    float: left;
     width: 250px;
+    padding: 10px 0px 30px 20px;
+    o_utline: 1px solid #fcc;
+}
+
+#content {
+    margin: 0 0 0 270px;
+    o_utline: 1px solid #cfc;
+}
+#content ~ div {
+    clear: both;
 }
 
 
-.article .code {
+#nav ul {
+    margin: 0;
+    padding-left: 2em;
+    list-style: square;
+    text-shadow: 0 1px 1px white;
+}
+
+#nav ul.section {
+    padding: 0;
+    list-style: none;
+}
+#nav ul.section > li > span {
+    font-weight: bold;
+}
+
+/*****************************************************************************
+ * ARTICLE
+ *****************************************************************************/
+article {
+    background-color: #fff;
+    padding: 1em 2em;
+    min-height: 20em;
+}
+
+article .code {
+    font-size: .8em;
+    white-space: normal;
     background-color: #eee;
     border: 1px solid #ddd;
     border-radius: 2px;
-    white-space: normal;
 }
-.article .code ol {
+article .code ol {
     margin: 0 0 0 33px;
     padding: 5px;
 }
-.article .code li {
-    border-left: 1px solid #777;
+article .code li {
+    border-left: 2px solid #c4c474;
     padding-left: 5px;
+}
+article .code .g {
+    color: rgb(82, 139, 36);
+}
+
+
+article hr {
+    background-color: #e4e484;
+    height: .75em;
+    border: none;
+    margin: .75em 0;
+}
+
+article h2 {
+    font-size: 1.4em;
 }

@@ -8,7 +8,7 @@
     <script src="../../js/decl/routeProvider.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <s2cript src="Twitter.js"></s2cript>
-    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <link rel="stylesheet" href="../../assets/styles/gaia.c2ss">
     <link rel="stylesheet" href="assets/styles.css">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
     <script>
@@ -22,19 +22,31 @@
     <div>HEADER</div>
 </header>
 <div class="wrapper">
-    <h2>Path: {{ gaia.routeProvider.path }}</h2>
-    <div class="nav">
-        <ul>
-            <li repeat="directive in directives">
-                <a href="api/directive/{{ directive.link }}">{{ directive.name }}</a>
+    <div style="display: none">Path: {{ gaia.routeProvider.path }}</div>
+    <div id="nav">
+        <ul class="section">
+            <li><span>Directives:</span>
+                <ul class="function">
+                    <li repeat="directive in directives">
+                        <a href="api/directive/{{ directive.link }}">{{ directive.name }}</a>
+                    </li>
+                </ul>
+            </li>
+            <li><span>gaia functions:</span>
+                <ul class="function">
+                    <li repeat="fun in functions">
+                        <a href="api/functions/{{ fun.link }}">{{ fun.name }}</a>
+                    </li>
+                </ul>
             </li>
         </ul>
     </div>
-    <div class="content" g:route="^api/:section/:id" g:include="{{ gaia.routeProvider.path }}">Content...</div>
-
+    <div id="content" g:route="^api/:section/:id" g:include="{{ gaia.routeProvider.path }}">
+    </div>
+    <div></div><!-- clear -->
 </div>
 <footer>
-    <div>GaiaJS {{ gaia.version }}</div>
+    <div>FOOTER && GaiaJS {{ gaia.version }}</div>
 </footer>
 </body>
 <script>
@@ -47,12 +59,27 @@ var directives = [{
 },{
     name: "g:include"
    ,link: "g:include"
+},{
+    name: "g:ignore"
+   ,link: "g:ignore"
+}];
+
+var functions = [{
+    name: "gaia.load"
+   ,link: "gaia.load"
+},{
+    name: "gaia.compile"
+   ,link: "gaia.compile"
+},{
+    name: "gaia.parse"
+   ,link: "gaia.parse"
 }];
 
 
 gaia.compile(document.body)({
     gaia: gaia
    ,directives: directives
+   ,functions: functions
 });
 </script>
 </html>

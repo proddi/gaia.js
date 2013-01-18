@@ -1,20 +1,18 @@
-<header class="entry-header">
+<article>
     <h1 class="entry-title">directive/g:init</h1>
+    <div class="path"></div>
     <hr>
-</header>
 
-<div class="article">
-    <h2>g:init</h2>
+    <h2>Syntax:</h2>
+    <pre class="interface">g:init="{expression}"</pre>
 
     <p class="desc">Expression specified in g:init will be exectuted on initialization time. No bindings will be applied.</p>
 
-    <h3>Example:</h3>
+    <h2>Example:</h2>
     <pre class="code">
         <ol>
-            <li>&lt;TAG g:init="{expression}"&gt;</li>
-            <li>&lt;/TAG&gt;</li>
+            <li>&lt;TAG <span class="g">g:init</span>="data=[1,2,3]"&gt; ... &lt;/TAG&gt;</li>
         </ol>
     </pre>
-</div>
+</article>
 
-<div>g:init for {{ gaia.version }}</div>
