@@ -38,9 +38,6 @@ body > footer {
     font-size: .85em;
 }
 
-body > .wrapper {
-}
-
 #nav {
     float: left;
     width: 250px;
@@ -78,7 +75,7 @@ body > .wrapper {
 article {
     background-color: #fff;
     padding: 1em 2em;
-    min-height: 20em;
+    min-height: 40em;
 }
 
 article .code {
@@ -94,7 +91,8 @@ article .code ol {
 }
 article .code li {
     border-left: 2px solid #c4c474;
-    padding-left: 5px;
+    padding-left: 8px;
+    white-space: pre;
 }
 article .code .g {
     color: rgb(82, 139, 36);
@@ -111,3 +109,36 @@ article hr {
 article h2 {
     font-size: 1.4em;
 }
+
+article p {
+    margin: 0;
+}
+article .returns,
+article .param {
+    font-style: italic;
+}
+
+article .returns:before {
+    content: "@returns: ";
+    font-weight: bold;
+}
+article .param:before {
+    content: "@param: ";
+    font-weight: bold;
+}
+
+article .param *:first-child {
+    padding: 0 .5em 0 .1em;
+    color: rgb(113, 113, 172);
+}
+article .param *:nth-child(2) {
+    padding: 0 .5em 0 .1em;
+    color: rgb(146, 66, 66);
+}
+article .param *:nth-child(2):before {
+    content: "{";
+}
+article .param *:nth-child(2):after {
+    content: "}";
+}
+

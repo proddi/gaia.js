@@ -1,0 +1,27 @@
+<article>
+    <h1 class="entry-title">function/gaia.load</h1>
+    <div class="path"></div>
+    <hr>
+
+    <h2>Syntax:</h2>
+    <pre class="interface">gaia.load(url, [callback(err, data)])</pre>
+
+    <h2>Examples:</h2>
+    <pre class="code" g:ignore>
+        <ol>
+            <li>var content = gaia.load("partials/data.html")</li>
+        </ol>
+    </pre>
+    <pre class="code" g:ignore>
+        <ol>
+            <li>gaia.load("partials/data.html", function(err, data)) {</li>
+            <li>  if (err) throw Error("Ooops!")</li>
+            <li>  console.log(data);</li>
+            <li>});</li>
+        </ol>
+    </pre>
+    <pre class="code" g:init="console.log('--->', this)">
+        some.function();
+    </pre>
+</article>
+
