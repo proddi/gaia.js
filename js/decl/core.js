@@ -193,9 +193,7 @@
                         iteratorExpr.$set(cloneScope, item);
                         var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
                         instances.push(unbinder);
-                    });
-
-                    collection.$on("remove", function(item, idx) {
+                    }).$on("remove", function(item, idx) {
                         // TODO: for lazy remove (finishing transitions) unbind template and remove node in setTimeout
                         var node = parentNode.children[idx];
                         parentNode.removeChild(node);

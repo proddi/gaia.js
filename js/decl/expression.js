@@ -40,16 +40,25 @@ tests.push([/\| *([A-Za-z][A-Za-z0-9_]*)/g,
 ]);
 
 // members
-tests.push([/(?:\/)?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g,
+tests.push([/\$?[A-Za-z](?:[A-Za-z0-9_:.-]*)/g,
     function(match, s, report) {
-        var match = match[0]
-          , x = match.split(".");
-        if (1 === x.length) {
-            report.binding(match);
-            return "_$_scope." + match;
+        var x = match[0].split(".")
+           ,ns = "$" === x[0][0] ? "$" : "!"
+           ,scope
+           ;
+        if ("$" === ns) {
+            scope = "window";
+            x[0] = x[0].substr(1);
+        } else {
+            scope = "_$_scope";
         }
-        report.binding.apply(undefined, x);
-        return "_$_get.call(_$_scope,"+ x.splice(0, x.length - 1).map(function(e) { return '"' + e + '"'; })+")." + x;
+
+        if (1 === x.length) {
+            report.binding(ns, x[0]);
+            return scope + "." + x[0];
+        }
+        report.binding.apply(undefined, [ns].concat(x));
+        return "_$_get.call(" + scope + ","+ x.splice(0, x.length - 1).map(function(e) { return '"' + e + '"'; })+")." + x;
     }
 ]);
 
@@ -127,7 +136,7 @@ var Expression = function(src) {
           ;
         if (!callback) return f();
 
-        f.$unbind = watchTree(_$_scope, bindings, function() { callback(f()); });
+        f.$unbind = watchNsTree({ "$": window, "!": _$_scope }, bindings, function() { callback(f()); });
         f.$bindings = bindings;
         callback(f());
         return f;
@@ -151,6 +160,16 @@ function countMembers(o) {
     var i = 0;
     for (var key in o) i++;
     return i;
+}
+
+function watchNsTree(namespaces, tree, callback) {
+    var unbinds = [];
+    for (var ns in tree) {
+        unbinds.push(watchTree(namespaces[ns], tree[ns], callback));
+    }
+    return function() {
+        for (var i=0, unbind;(unbind = unbinds[i++]);) unbind();
+    }
 }
 
 function watchTree(scope, tree, callback) {

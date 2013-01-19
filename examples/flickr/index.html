@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="flickr.css">
 </head>
 <body>
-    <div scope="Flickr" g:init="tags='kitty'" name="flickr" limit="5" tags="{{ tags }}"></div>
+    <div scope="$Flickr" g:init="tags='kitty'" name="flickr" limit="5" tags="{{ tags }}"></div>
 
     <div class="flickr {{ flickr.images | count }}_images">
         <div class="header">
@@ -33,6 +33,6 @@
     </div>
 </body>
 <script>
-gaia.compile(document.body)();
+gaia.compile(document.body)({});
 </script>
 </html>

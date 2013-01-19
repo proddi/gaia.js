@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:g="http://www.w3.org/2000/g">
 <head>
     <title>Twitter search example</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -9,8 +9,8 @@
     <script src="Twitter.js"></script>
     <link rel="stylesheet" href="tweets.css">
 </head>
-<body>
-    <div scope="Twitter" name="twitter" limit="8" query="{{ q || '#empty'}}"></div>
+<body gaia g:gaia g:init="q='#love'">
+    <div scope="$Twitter" name="twitter" limit="8" query="{{ q || '#empty'}}"></div>
 
     <div class="wrapper">
         <ul class="list">
@@ -18,7 +18,7 @@
                 <div>
                     <span>{{ twitter.tweets | count }} Tweets:</span>
                     <input model="q" placeholder="query">
-                    <a href="#" onclick="window.twitter.refresh(); return false;">refresh</a>
+                    <a href="#" onclick="twitter.refresh(); return false;">refresh</a>
                 </div>
                 <div>Search term is "{{q}}"</div>
             </li>
@@ -48,6 +48,6 @@
     </div>
 </body>
 <script>
-gaia.compile(document.body)({ Twitter: Twitter, q: "love" });
+gaia.compile(document.body)({});
 </script>
 </html>

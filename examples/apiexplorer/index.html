@@ -18,7 +18,7 @@
     <div>HEADER</div>
 </header>
 <div class="wrapper">
-    <div style="display: none">Path: {{ gaia.routeProvider.path }}</div>
+    <div style="display: none">Path: {{ $gaia.routeProvider.path }}</div>
     <div id="nav">
         <ul class="section">
             <li><span>Directives:</span>
@@ -37,7 +37,7 @@
             </li>
         </ul>
     </div>
-    <div id="content" g:route="^api/:section/:id" g:include="{{ gaia.routeProvider.path }}">
+    <div id="content" g:route="^api/:section/:id" g:include="{{ $gaia.routeProvider.path }}">
     </div>
     <div></div><!-- clear -->
 </div>
@@ -97,8 +97,7 @@ var functions = [{
 
 
 gaia.compile(document.body)({
-    gaia: gaia
-   ,directives: directives
+    directives: directives
    ,functions: functions
 });
 </script>

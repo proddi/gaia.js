@@ -198,3 +198,19 @@ test("logic", function() {
     equal(gaia.parse('0 == 0')(), true, '0 == 0 -> true');
     equal(gaia.parse('0 === 0')(), true, '0 === 0 -> true');
 });
+
+test("global namespace", function() {
+    window.foo = "FOO";
+    equal(gaia.parse('$foo')({ foo: "bar" }), "FOO", '$ means window namespace');
+    delete window.foo;
+
+    window.foo = "FOO";
+    var flow = [];
+    gaia.parse("$foo")({}, function(value) {
+        flow.push(value);
+    });
+    window.foo = "BAR";
+    window.foo = "BIZ";
+    equal(flow.join(", "), "FOO, BAR, BIZ", "Watching changes on $window namespace");
+    delete window.foo;
+});
