@@ -108,7 +108,7 @@ var Expression = function(src) {
         parsed = match.parse(match, s, reporting);
         compiled += s.substr(0, match.index) + parsed;
         s = s.substr(match.index + match[0].length || 99999999);
-        
+
         if (!ii--) throw "Parsing engine is looping like a rollercoster :(";
     }
     var compiledWithFilter = filter ? filter.replace("#(*)#", compiled) : compiled;
@@ -163,7 +163,7 @@ function watchTree(scope, tree, callback) {
             }
             callback();
         } : callback;
-        var unwatch = decl.watch(scope, key, cb)
+        var unwatch = gaia.watch(scope, key, cb)
           , unwatchTree;
         if (scope[key]) {
             unwatchTree = watchTree(scope[key], tree[key], callback);

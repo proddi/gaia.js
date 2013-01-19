@@ -172,12 +172,10 @@
                 parentNode.removeChild(n);
 
                 collectionExpr(scope, function(collection) {
-                    collection = decl._prepareArray(collection);
-//                    console.log("~ collection eval:", collectionExpr.$source, "=", collection);
+                    collection = gaia.array(collection);
 
                     // remove old instances
                     while ((unbinder = instances.shift())) {
-//                        parentNode.removeChild(instance);
                         unbinder();
                         unbinder.detatch();
                     }

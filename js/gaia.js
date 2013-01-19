@@ -112,7 +112,110 @@ var gaia = {
         return new Scope();
     };
 
+    /**
+     * Watch changes of an property. It patches the object if its needed.
+     *
+     * @param {Object} o
+     * @param {String} prop
+     * @param {Function} callback
+     */
+    gaia.watch = function(o, prop, callback) {
+		var getter = o.__lookupGetter__(prop)
+		  , setter = o.__lookupSetter__(prop)
+		  ;
+		if (!setter || !getter) {
+			var callbacks = [];
+			var value = o[prop];
+			setter = function(val) {
+				if (value !== val) {
+					value = val;
+					for (var i=0, l=callbacks.length; i<l; i++)
+						callbacks[i](val);
+				}
+			};
+			setter.watch = function(callback) {
+				callbacks.push(callback);
+				return function() {
+			        var i = callbacks.indexOf(callback);
+			        if (i>=0) callbacks.splice(i, 1);
+			    }
+			};
+			getter = function() {
+				return value;
+			};
+			o.__defineGetter__(prop, getter);
+			o.__defineSetter__(prop, setter);
+// cleanup, loose bindings on object remove
+//            (o.__looseBinds = o.__looseBinds || []).push(function() {
+//                callbacks.splice(0, callbacks.length);
+//            });
+		}
+		return setter.watch(callback);
+	};
+
+	/**
+	 * Prepare array with some listeners.
+	 *
+	 * @param {Array} a The array needs to be prepared.
+	 */
+    gaia.array = function(a) {
+        if (a.$add) return a;
+
+        var callbacks = {};
+        a.$add = function(item) {
+            this.push(item);
+            for (var i=0, l=callbacks.add.length; i<l; i++) {
+                callbacks.add[i](item);
+            }
+        };
+        a.$remove = function(item) {
+            var idx = this.indexOf(item);
+            if (idx<0) return;
+            if (item.__looseBinds) {
+                for (var i = 0, l = item.__looseBinds.length; i<l; i++) item.__looseBinds[i]();
+            }
+            for (var i=0, l=callbacks.remove.length; i<l; i++) {
+                callbacks.remove[i](item, idx);
+            }
+            this.splice(idx, 1);
+        };
+        a.$update = function(item) {
+        };
+        a.$on = function(event, callback) {
+            (callbacks[event] = callbacks[event] || []).push(callback);
+            return this;
+        };
+        return a;
+    };
+
+    function domLoaded(callback) {
+        /* Mozilla, Chrome, Opera */
+        if (document.addEventListener) {
+            document.addEventListener('DOMContentLoaded', callback, false);
+        } else
+        /* Safari, iCab, Konqueror */
+        if (/KHTML|WebKit|iCab/i.test(navigator.userAgent)) {
+            var DOMLoadTimer = setInterval(function() {
+                if (/loaded|complete/i.test(document.readyState)) {
+                    callback();
+                    clearInterval(DOMLoadTimer);
+                }
+            }, 10);
+        } else
+        /* Other web browsers */
+        window.onload = callback;
+    };
+
     gaia.require("decl/core.js");
     gaia.require("decl/expression.js");
+
+    domLoaded(function() {
+		var nodes = document.querySelectorAll("[gaia]");
+		for (var i = 0, node; (node = nodes[i]); i++) {
+            console.info("~ ready to compile:", node);
+//            decl.compile.call(scope, node);
+//            decl.prepare(document.body, decl.scope(window), true)
+		}
+    });
 
 })();
