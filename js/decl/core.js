@@ -513,7 +513,7 @@
         if ("string" === typeof data) {
             var wrap = document.createElement("div");
             wrap.innerHTML = data;
-            return compile(wrap);
+            return compile(wrap.childNodes[0]);
         }
         throw Error("Unknown data:", data);
     }
