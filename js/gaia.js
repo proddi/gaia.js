@@ -212,9 +212,8 @@ var gaia = {
     domLoaded(function() {
 		var nodes = document.querySelectorAll("[gaia]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
-            console.info("~ ready to compile:", node);
-//            decl.compile.call(scope, node);
-//            decl.prepare(document.body, decl.scope(window), true)
+            console.log("~ compile", node);
+            gaia.compile(node)({});
 		}
     });
 

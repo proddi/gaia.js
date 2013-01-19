@@ -468,10 +468,10 @@
      */
     function compile(node) {
 
-        console.time('compile');
+//        console.time('compile');
         var templates = parseTemplates(node);
         var compiled = __compile(node);
-        console.timeEnd('compile');
+//        console.timeEnd('compile');
 
         // link function
         var f = function(scope) {

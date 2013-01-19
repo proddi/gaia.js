@@ -23,14 +23,14 @@
         <ul class="section">
             <li><span>Directives:</span>
                 <ul class="function">
-                    <li repeat="directive in directives">
+                    <li repeat="directive in $directives">
                         <a href="api/directive/{{ directive.link }}">{{ directive.name }}</a>
                     </li>
                 </ul>
             </li>
             <li><span>gaia functions:</span>
                 <ul class="function">
-                    <li repeat="fun in functions">
+                    <li repeat="fun in $functions">
                         <a href="api/functions/{{ fun.link }}">{{ fun.name }}</a>
                     </li>
                 </ul>
@@ -42,7 +42,7 @@
     <div></div><!-- clear -->
 </div>
 <footer>
-    <div>FOOTER && GaiaJS {{ gaia.version }}</div>
+    <div>FOOTER && GaiaJS {{ $gaia.version }}</div>
 </footer>
 </body>
 <script>
@@ -94,11 +94,5 @@ var functions = [{
     name: "gaia.scope"
    ,link: "gaia.scope"
 }];
-
-
-gaia.compile(document.body)({
-    directives: directives
-   ,functions: functions
-});
 </script>
 </html>

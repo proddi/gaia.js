@@ -9,7 +9,7 @@
     <script src="Twitter.js"></script>
     <link rel="stylesheet" href="tweets.css">
 </head>
-<body gaia g:gaia g:init="q='#love'">
+<body gaia g:init="q='#love'">
     <div scope="$Twitter" name="twitter" limit="8" query="{{ q || '#empty'}}"></div>
 
     <div class="wrapper">
@@ -47,7 +47,4 @@
         </ul>
     </div>
 </body>
-<script>
-gaia.compile(document.body)({});
-</script>
 </html>
