@@ -17,7 +17,7 @@
             <div>
                 <span>{{ flickr.images | count }} Images:</span>
                 <input model="tags" placeholder="enter tags">
-                <a href="#" onclick="window.flickr.refresh(); return false;">refresh</a>
+                <a href="#" onclick="flickr.refresh(); return false;">refresh</a>
             </div>
             <div>{{ flickr.title }} ({{ flickr.status }})</div>
         </div>

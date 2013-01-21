@@ -331,7 +331,7 @@
     });
 
     /**
-     * Expression specified in g:init will be exectuted on initialization time. No bindings will be applied.
+     * WRONG: Expression specified in g:init will be exectuted on initialization time. No bindings will be applied.
      * @module
      * @example <div g:init="a=1">...</div>
      * @see directive/g:init

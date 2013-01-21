@@ -54,12 +54,12 @@ body > footer {
     float: left;
     width: 250px;
     padding: 10px 0px 30px 20px;
-    o_utline: 1px solid #fcc;
+    border-right: 2px solid #c4c474;
 }
 
 #content {
     margin: 0 0 0 270px;
-    o_utline: 1px solid #cfc;
+    border-left: 2px solid #c4c474;
 }
 #content ~ div {
     clear: both;
