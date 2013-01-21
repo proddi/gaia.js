@@ -206,8 +206,8 @@ var gaia = {
         window.onload = callback;
     };
 
-    gaia.require("decl/core.js");
-    gaia.require("decl/expression.js");
+    gaia.require("gaia/core.js");
+    gaia.require("gaia/expression.js");
 
     domLoaded(function() {
 		var nodes = document.querySelectorAll("[gaia]");

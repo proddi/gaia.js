@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:g="http://www.w3.org/2000/g">
+<head>
+    <title>Components example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</head>
+<body gaia g:init="list = ['John', 'Doe']">
+    <div class="wrapper">
+        <ul class="list">
+            <li repeat="item in list" g:i_nclude="item" g:onClick="$alert('CLICK!!')">
+                Content is using a
+            </li>
+        </ul>
+    </div>
+    <!-- Component definition -->
+    <li g:component="item"
+        g:scope="$Foo"
+        g:o_nclick="$Event"
+    >
+        <span style="float:left">{{ a }}</span>
+        <span>{{ b }}</span>
+    </li>
+</body>
+</html>
