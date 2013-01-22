@@ -1,6 +1,76 @@
 (function() {
     var modules = [];
 
+    var __components = {
+    };
+
+    function __registerComponent(id, binder) {
+        console.log("--> register component", id);
+        __components[id] = [binder];
+    }
+
+    function __getComponent(id, callback) {
+        var component;
+        if ((component = __components[id]) && component[0]) {
+            callback(component[1], component[0]);
+        } else {
+            if (component) {
+                console.log("--> used cached component, just add handler", component);
+                component[2].push(callback);
+            } else {
+                console.log("--> new component from url");
+                __components[id] = component = [undefined, undefined, [callback]];
+                gaia.load(id.replace(":", "_"), function(err, data) {
+                    var comp = component;
+                    data = gaia.compile(data);
+                    comp[0] = function() {
+                        return data.clone().apply(undefined, arguments);
+                    }
+                    // call all pending callbacks
+                    comp[2].forEach(function(callback) {
+                        console.log("foo");
+                        callback(comp[1], comp[0]);
+                    });
+                    comp[2] = undefined;
+                });
+            }
+/*
+
+
+
+            console.log("--> request for component (not found)", id);
+            var callbacks = [callback];
+            __components[id] = function() {
+                callbacks.push(callback);
+            }
+            gaia.load(id.replace(":", "_"), function(err, data) {
+                if (!err) {
+                    data = gaia.compile(data);
+                    __components[id] = function(scope) {
+                        console.log("--> used cahced component");
+                        return data.clone()(scope);
+                    }
+                } else {
+                    __components[id] = function() {
+                        return Error("Foo");
+                    }
+                    __components[id].$error = err;
+                }
+                callbacks.forEach(function(callback) {
+                    console.log("foo");
+                    debugger;
+                    callback(__components[id].$error, __components[id]);
+                });
+            });
+            console.log(1);
+*/
+        }
+    }
+
+//    function __isComponent(id) {
+//        return !!__components[id];
+//    }
+
     // prevents SCRIPT traverse
     modules.push(function(node, next) {
         if ("SCRIPT" === node.nodeName
@@ -29,6 +99,76 @@
     });
 
     /**
+     * repeat
+     * @module
+     * @see directive/g:repeat
+     */
+    modules.push(function(node, next) {
+        if (node.hasAttribute("repeat")) {
+            var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
+    //        console.log("~ [repeat]", match);
+
+            if (!match || match.length !== 3) {
+                throw new Error("repeat needs 'x in y'");
+            }
+
+            // replace node to have a reference node in linking process.
+            node.parentNode.insertBefore(document.createElement('span'), node);
+            node.parentNode.removeChild(node);
+            node.removeAttribute("repeat");
+
+            var iteratorExpr = new Expression(match[1])
+              , collectionExpr = new Expression(match[2])
+              , compiled = compile(node)
+              ;
+
+            return function(n, next) {
+                var scope = this;
+
+                // extract and remove parentNode
+                var parentNode = n.parentNode
+                  , instances = []
+                  , instance
+                  ;
+                parentNode.removeChild(n);
+
+                collectionExpr(scope, function(collection) {
+                    collection = gaia.array(collection);
+
+                    // remove old instances
+                    while ((unbinder = instances.shift())) {
+                        unbinder();
+                        unbinder.detatch();
+                    }
+
+                    // create new instances
+                    for (var i = 0, l = collection.length; i < l; i++) {
+                        var cloneScope = gaia.scope(scope);
+                        iteratorExpr.$set(cloneScope, collection[i]);
+                        var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
+                        instances.push(unbinder);
+                    }
+
+                    collection.$on("add", function(item) {
+                        var cloneScope = gaia.scope(scope);
+                        iteratorExpr.$set(cloneScope, item);
+                        var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
+                        instances.push(unbinder);
+                    }).$on("remove", function(item, idx) {
+                        // TODO: for lazy remove (finishing transitions) unbind template and remove node in setTimeout
+                        var node = parentNode.children[idx];
+                        parentNode.removeChild(node);
+                        // TODO: remove from instances
+                    });
+                });
+                next(scope); // linking
+            };
+        } else {
+            next(); // compiling
+        }
+    });
+
+    /**
      * include
      * @module
      * @see directive/g:include
@@ -36,10 +176,15 @@
     modules.push(function(node, next) {
         if (node.hasAttribute("g:include")) {
             var exprInclude = gaia.parseText(node.getAttribute("g:include"))
+               ,values = {};
+            for (var i = 0, attrib; (attrib = node.attributes[i]); i++) {
+                console.log("~~ ", attrib.name, "=", attrib.value);
+                values[attrib.name] = gaia.parse(attrib.value);
+            }
             next(function(n, next) {
                 var include;
-                exprInclude(this, function(value) {
-                    var scope = this;
+                var scope = this;
+                exprInclude(scope, function(value) {
                     if (!value) {
                         n.innerHTML = "";
                     } else {
@@ -48,14 +193,23 @@
                             include();
                             include = undefined;
                         }
-                        gaia.load(value.replace(":", "_") + ".html", function(err, data) {
-                            include = gaia.compile(data)(scope).appendTo(n);
+                        __getComponent(value, function(err, binder) {
+                            include = binder(scope).appendTo(n);
+                            console.log(n);
                         });
                     }
                 });
+
+                for (var key in values) {
+                    values[key](scope, function(key, value) {
+                        scope[key] = value;
+                    }.bind(this, key));
+                }
+
+//                next(this); // linking
             });
         } else {
-            next();
+            next(); // compiling
         }
     });
 
@@ -138,83 +292,13 @@
     });
 
     /**
-     * repeat
-     * @module
-     * @see directive/g:repeat
-     */
-    modules.push(function(node, next) {
-        if (node.hasAttribute("repeat")) {
-            var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
-    //        console.log("~ [repeat]", match);
-
-            if (!match || match.length !== 3) {
-                throw new Error("repeat needs 'x in y'");
-            }
-
-            // replace node to have a reference node in linking process.
-            node.parentNode.insertBefore(document.createElement('span'), node);
-            node.parentNode.removeChild(node);
-            node.removeAttribute("repeat");
-
-            var iteratorExpr = new Expression(match[1])
-              , collectionExpr = new Expression(match[2])
-              , compiled = compile(node)
-              ;
-
-            return function(n, next) {
-                var scope = this;
-
-                // extract and remove parentNode
-                var parentNode = n.parentNode
-                  , instances = []
-                  , instance
-                  ;
-                parentNode.removeChild(n);
-
-                collectionExpr(scope, function(collection) {
-                    collection = gaia.array(collection);
-
-                    // remove old instances
-                    while ((unbinder = instances.shift())) {
-                        unbinder();
-                        unbinder.detatch();
-                    }
-
-                    // create new instances
-                    for (var i = 0, l = collection.length; i < l; i++) {
-                        var cloneScope = gaia.scope(scope);
-                        iteratorExpr.$set(cloneScope, collection[i]);
-                        var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
-                        instances.push(unbinder);
-                    }
-
-                    collection.$on("add", function(item) {
-                        var cloneScope = gaia.scope(scope);
-                        iteratorExpr.$set(cloneScope, item);
-                        var unbinder = compiled.clone()(cloneScope).appendTo(parentNode);
-                        instances.push(unbinder);
-                    }).$on("remove", function(item, idx) {
-                        // TODO: for lazy remove (finishing transitions) unbind template and remove node in setTimeout
-                        var node = parentNode.children[idx];
-                        parentNode.removeChild(node);
-                        // TODO: remove from instances
-                    });
-                });
-                next(scope); // linking
-            };
-        } else {
-            next(); // compiling
-        }
-    });
-
-    /**
      * Scope support
      * @module
      * @see directive/g:scope
      */
     modules.push(function(node, next) {
         if (node.hasAttribute("scope")) {
-            var expr = new Expression(node.getAttribute("scope"));
+            var expr = gaia.parse(node.getAttribute("scope"));
             node.removeAttribute("scope");
             var prop = node.getAttribute("name");
             node.removeAttribute("name");
@@ -432,9 +516,38 @@
      * @param {DOMNode} node A dom node.
      */
     function parseTemplates(node) {
-        var nodes = []
-          , n = node.querySelectorAll("[template]");
-        for (var i = n.length >>> 0; i--;) nodes[i] = n[i];
+        var n = node.querySelectorAll("[g-component]")
+           ,n2 = node.querySelectorAll("[template]")
+           ;
+        for (var nodes = [], i = n.length >>> 0; i--;) nodes[i] = n[i];
+        nodes.forEach(function(node) {
+            var id = node.getAttribute("g-component");
+            node.removeAttribute("g-component");
+            node.parentNode.removeChild(node);
+            var compiled = __compile(node);
+            console.log("~ component:", id, node);
+            __registerComponent(id, function(scope) {
+                var cloneNode = node.cloneNode(true)
+                console.log("--> component.creator:", id);
+                /* var unbinder = */compiled.call(scope, cloneNode, function() {
+                });
+                var unbinder = function() {
+                    console.warn("Unbinder isn't implemented :(");
+                    return;
+                };
+                unbinder.appendTo = function(target) {
+                    target.appendChild(cloneNode);
+                    return unbinder;
+                };
+                unbinder.detatch = function() {
+                    cloneNode.parentNode && cloneNode.parentNode.removeChild(cloneNode);
+                    return unbinder;
+                };
+                return unbinder;
+            });
+        });
+        // old templates
+        for (var nodes = [], i = n2.length >>> 0; i--;) nodes[i] = n2[i];
         nodes.forEach(function(node) {
             var name = node.getAttribute("template");
             node.removeAttribute("template");

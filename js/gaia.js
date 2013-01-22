@@ -97,7 +97,7 @@ var gaia = {
                 return text.join(""); // ?????
             });
             return text.join("");
-        } || arguments.length < 2 && function() { return text.join(""); } || notFoundValue;
+        } || arguments.length < 2 && function(scope, update) { update && update(text.join("")); return text.join(""); } || notFoundValue;
     };
 
 	/**

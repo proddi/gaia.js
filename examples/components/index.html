@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:g="http://www.w3.org/2000/g">
+<head>
+    <title>Components example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</head>
+<body gaia g:init="list = ['John', 'Doe']">
+    <div class="wrapper">
+        <ul class="list">
+            <li g:include="partials/listitem.html" g:onClick="function() {alert('CLICK1!!')}" g:p-foo="G:FOO"></li>
+            <li g:include="partials/listitem.html" g:onClick="function() {alert('CLICK2!!')}"></li>
+            <li g:include="partials/listitem.html" g:onClick="function() {alert('CLICK3!!')}"></li>
+            <li repeat="item in list" g:include="item" g:onClick="function() {alert('CLICKx!!')}"></li>
+        </ul>
+    </div>
+    <!-- Component definition -->
+    <div g-component="item"
+        scope="$Foo"
+        g:o_nclick="$Event"
+        g:init="$console.log('foo', this)"
+        g:properties="a,g:foo,g:bar"
+        g:map-foo="g:foo"
+    >
+        i'm component "item": {{ getItem() }}.
+    </div>
+</body>
+<script>
+    var Foo = function(parent, node) {
+        console.log("~ Foo.create", parent, node);
+        var $Foo = gaia.scope(parent);
+        $Foo.getItem = function() {
+            return "<b>" + this.item + "</b>";
+        }
+        return $Foo;
+    };
+</script>
+</html>
