@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GAIA - List example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+</head>
+<body gaia>
+<div class="wrapper">
+
+    <div scope="$Basket">
+        <ul>
+            <li repeat="item in items">
+                <span>{{ item.amount}}x {{ item.name }}</span> (<a g:onclick="remove(item)">X</a>)
+            </li>
+        </ul>
+
+        <input type="text" model="name" g:init="name='Cat'" size=10>
+        <input type="number" model="amount" g:init="amount=1">
+        <button g:onclick="add(name, amount)">Add</button>
+    </div>
+
+</div>
+</body>
+<script>
+
+    var Basket = function(parent, node) {
+        this.items = gaia.array([{
+            name: 'Foo'
+          , amount: 1
+        }, {
+            name: 'Bar'
+          , amount: 2
+        }]);
+    }
+
+    Basket.prototype.add = function(name, amount) {
+        this.items.$add({ name: name, amount: amount });
+    }
+
+    Basket.prototype.remove = function(item) {
+        this.items.$remove(item);
+    }
+
+</script>
+</html>

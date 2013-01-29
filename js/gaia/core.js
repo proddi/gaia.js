@@ -391,22 +391,47 @@
 
         if (text || src|| href || styles || className) {
             src && node.removeAttribute("src"); // prevent error logs
-            next(function(node, next) {
+            next(function(n, next) {
                 text && text(this, function(value) {
-                    node.innerHTML = value;
+                    n.innerHTML = value;
                 });
                 src && src(this, function(value) {
-                    node.setAttribute("src", value);
+                    n.setAttribute("src", value);
                 });
                 href && href(this, function(value) {
-                    node.href = value;
+                    n.href = value;
                 });
                 styles && styles(this, function(value) {
-                    node.style.cssText = value;
+                    n.style.cssText = value;
                 });
                 className && className(this, function(value) {
-                    node.className = value;
+                    n.className = value;
                 });
+                next(this);
+            });
+        } else {
+            next();
+        }
+    });
+
+    /**
+     * Common attribute module to provide mouse/keyboard event support for following attributes: g:onclick
+     * @module
+     * @example <a g:onclick="alert('Clicked!!')"><img src="images/{{ image_id }}"></a>
+     * @see directive/g:onclick
+     */
+    modules.push(function(node, next) {
+        var click = node.hasAttribute("g:onclick") && gaia.parse(node.getAttribute("g:onclick"))
+          ;
+
+        if (click) {
+            next(function(n, next) {
+                var scope = this;
+                if (click) {
+                    n.addEventListener("click", function(ev) {
+                        click(scope);
+                    });
+                }
                 next(this);
             });
         } else {

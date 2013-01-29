@@ -11,7 +11,7 @@ tests.push([/(".*?")/g, passThrough]);
 tests.push([/('.*?')/g, passThrough]);
 
 // key words
-tests.push([/\b(?:abstract|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|final|finally|for|function|goto|if|implements|in|instanceof|interface|native|new|null|private|protected|prototype|public|return|static|super|switch|synchronized|throw|throws|this|transient|true|try|typeof|var|volatile|while|with)\b/g,
+tests.push([/\b(?:abstract|alert|break|case|catch|class|const|continue|console|debugger|default|delete|do|else|enum|export|extends|false|final|finally|for|function|goto|if|implements|in|instanceof|interface|native|new|null|private|protected|prototype|public|return|static|super|switch|synchronized|throw|throws|this|transient|true|try|typeof|var|volatile|while|with)\b/g,
     passThrough
 ]);
 
@@ -21,7 +21,7 @@ tests.push([/\b[+-]?(?:(?:0x[A-Fa-f0-9]+)|(?:(?:[\d]*\.)?[\d]+(?:[eE][+-]?[\d]+)
 ]);
 
 // object members
-tests.push([/\b([A-Za-z][A-Za-z0-9]*[ ]*:)\b/g, passThrough]);
+tests.push([/([A-Za-z][A-Za-z0-9]*[ ]*:)/g, passThrough]);
 
 // filter - params '| join(":")'
 tests.push([/\| *([A-Za-z][A-Za-z0-9_]*)\((.*?)\)/g,
