@@ -1,3 +1,10 @@
+/** A unbinder function is leasing all bindings by calling.
+ * @method Unbinder
+ */
+
+/** A module. Its name is module:gaia.
+ * @module gaia
+ */
 var gaia = {
     version: "0.1-prealpha"
 };
@@ -17,6 +24,10 @@ var gaia = {
 
     // Expression thingie - move to there?
     var functions = {};
+    /**
+     * An event. Its name is module:foo/bar.event:MyEvent.
+     * @event module:gaia.event:MyEvent
+     */
     gaia.functions = {
         add: function(name, fun) {
             functions[name] = fun;
@@ -29,13 +40,13 @@ var gaia = {
 
     /**
      * Loads a resource from a url.
-     *
+     * @method module:gaia.load
      * @param {String} url The url of the resource.
      * @param {Function} callback The callback(err, data). If no callback specified, the function behaves synchronous.
      * @returns {String} Loaded content as string.
      *
      * @throws {String}
-     * @require {jQuery}
+     * @requires {jQuery}
      */
     gaia.load = function(url, callback) {
         if (callback) {
@@ -62,7 +73,7 @@ var gaia = {
 
     /**
      * Syncronously loads and executes a script specified by url.
-     *
+     * @method module:gaia.require
      * @param {String} url The resource url.
      */
     gaia.require = function(url, scope) {
@@ -103,6 +114,7 @@ var gaia = {
 	/**
 	 * Creates a scope including prototype.
 	 *
+     * @method module:gaia.scope
 	 * @param {Object} proto
 	 * @returns {Object} Scope with proto as prototype.
 	 */
@@ -114,10 +126,11 @@ var gaia = {
 
     /**
      * Watch changes of an property. It patches the object if its needed.
-     *
+     * @method module:gaia.watch
      * @param {Object} o
      * @param {String} prop
      * @param {Function} callback
+     * @returns {Unbinder} callback
      */
     gaia.watch = function(o, prop, callback) {
 		var getter = o.__lookupGetter__(prop)
@@ -156,7 +169,9 @@ var gaia = {
 	/**
 	 * Prepare array with some listeners.
 	 *
+     * @method module:gaia.array
 	 * @param {Array} a The array needs to be prepared.
+     * @returns {Array} The prepared array ready to be watched.
 	 */
     gaia.array = function(a) {
         if (a.$add) return a;

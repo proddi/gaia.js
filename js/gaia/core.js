@@ -1,3 +1,29 @@
+/** A unbinder function is leasing all bindings by calling.
+ * @class GaiaFragment
+ */
+/** A unbinder function is leasing all bindings by calling.
+ * @method GaiaFragment#clone
+ * @example var fragment = gaia.compile("<div>foo</div>");
+ * cloned = fragment.clone();
+ */
+/** A unbinder function is leasing all bindings by calling.
+ * @method GaiaFragment#link
+ * @param {Object} scope Scope The Fragment will linked aganst the specified scope.
+ * @returns {Unbinder} The unbinder for that link
+ * @example
+ * gaia.compile("&lt;div&gt;foo&lt;/div&gt;").link(scope);
+ */
+/** A unbinder function is leasing all bindings by calling.
+ * @method GaiaFragment#append
+ * @example <div g:show="isLoading">Loading...</div>
+ * compile(DOM|string).link(scope).append(parentNode)            // for fragments
+ * compile(DOM|string).clone().link(scope).append(parentNode)    // for fragment clones
+ */
+
+/** A module. Its name is module:g.
+ * @module g/directive
+ */
+
 (function() {
     var modules = [];
 
@@ -71,7 +97,10 @@
 //        return !!__components[id];
 //    }
 
-    // prevents SCRIPT traverse
+    /**
+     * prevents SCRIPT traverse
+     * @name module:g/directive.g:ignore
+     */
     modules.push(function(node, next) {
         if ("SCRIPT" === node.nodeName
             || node.hasAttribute("g:ignore")) {
@@ -82,9 +111,8 @@
 
     /**
      * Expression specified in g:init will be exectuted on initialization time. No bindings will be applied.
-     * @module
+     * @name module:g/directive.g:init
      * @example <div g:init="a=1">...</div>
-     * @see directive/g:init
      */
     modules.push(function(node, next) {
         var init = node.hasAttribute("g:init") && gaia.parse(node.getAttribute("g:init"));
@@ -100,7 +128,7 @@
 
     /**
      * repeat
-     * @module
+     * @name module:g/directive.g:repeat
      * @see directive/g:repeat
      */
     modules.push(function(node, next) {
@@ -170,7 +198,7 @@
 
     /**
      * include
-     * @module
+     * @name module:g/directive.g:include
      * @see directive/g:include
      */
     modules.push(function(node, next) {
@@ -215,7 +243,7 @@
 
     /**
      * loader
-     * @module
+     * @name module:g/directive.g:loader
      * @see directive/g:loader
      */
     modules.push(function(node, next) {
@@ -293,7 +321,7 @@
 
     /**
      * Scope support
-     * @module
+     * @name module:g/directive.g:scope
      * @see directive/g:scope
      */
     modules.push(function(node, next) {
@@ -352,7 +380,7 @@
 
     /**
      * Show/hide module providing support for g:show and g:hide attributes.
-     * @module
+     * @name module:g/directive.g:show
      * @example <div g:show="isLoading">Loading...</div>
      * @see http://stackoverflow.com/questions/272360/does-opacity0-have-exactly-the-same-effect-as-visibilityhidden
      * @see directive/g:show
@@ -416,7 +444,7 @@
 
     /**
      * Common attribute module to provide mouse/keyboard event support for following attributes: g:onclick
-     * @module
+     * @event module:g/directive.g:onclick
      * @example <a g:onclick="alert('Clicked!!')"><img src="images/{{ image_id }}"></a>
      * @see directive/g:onclick
      */
@@ -642,6 +670,12 @@
         return f2;
     }
 
+    /**
+     * Compiles a html snipped into a GaiaFragment.
+     * @method module:gaia.compile
+     * @param {DOMNode|String} data
+     * @return {GaiaFragment}
+     */
     gaia.compile = function(data) {
         if ("object" === typeof data) return compile(data);
         if ("string" === typeof data) {
