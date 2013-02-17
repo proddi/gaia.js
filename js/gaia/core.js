@@ -156,7 +156,6 @@
                 // extract and remove parentNode
                 var parentNode = n.parentNode
                   , instances = []
-                  , instance
                   ;
                 parentNode.removeChild(n);
 
@@ -186,7 +185,7 @@
                         // TODO: for lazy remove (finishing transitions) unbind template and remove node in setTimeout
                         var node = parentNode.children[idx];
                         parentNode.removeChild(node);
-                        // TODO: remove from instances
+                        // TODO: remove from instances ---> unbinder(); unbinder.detatch();
                     });
                 });
                 next(scope); // linking
@@ -325,20 +324,21 @@
      * @see directive/g:scope
      */
     modules.push(function(node, next) {
-        if (node.hasAttribute("scope")) {
-            var expr = gaia.parse(node.getAttribute("scope"));
+        if (node.hasAttribute("g:scope") || node.hasAttribute("scope")) {
+            var expr = gaia.parse(node.getAttribute("g:scope") || node.getAttribute("scope"));
+            node.removeAttribute("g:scope");
             node.removeAttribute("scope");
-            var prop = node.getAttribute("name");
+            var name = node.getAttribute("name");
             node.removeAttribute("name");
-            console.log("~ [scope] as " + prop, expr.$source);
+            console.log("~ [scope] as " + name, expr.$source);
             next(function(n, next) {
                 var scope = expr(this);
                 if (!scope) console.warn('~ [scope] building failed because it\'s undefined (as result of "' + expr.$source + '")');
                 if ("function" === typeof scope) {
-                    scope = new scope(this, n);
                     console.log("Creating scope from function", scope);
+                    scope = new scope(this, n);
                 }
-                if (prop) this[prop] = scope;
+                if (name) this[name] = scope;
                 next(scope);
             });
         } else {
