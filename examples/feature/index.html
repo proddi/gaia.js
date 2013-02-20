@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:g="http://gaiajs.org/g">
+<head>
+    <title>Twitter search example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../../js/gaia.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/gaia.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</head>
+<body gaia>
+    <div class="wrapper" g:feature="$auth">
+        <div>This section is {{ isAuth }}</div>
+        <ul><li repeat="a in [1,2,3]">{{ a }}</li></ul>
+    </div>
+    <button g:onclick="$auth.auth();">Auth!</button>
+</body>
+<script>
+    var auth = function(n, next) {
+        console.log("~ feature.auth", this, n);
+        var scope = gaia.scope(this);
+        scope.isAuth = false;
+
+        auth.auth = function() {
+            scope.isAuth = true;
+            next(scope);
+        }
+    };
+</script>
+</html>

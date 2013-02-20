@@ -346,6 +346,33 @@
         }
     });
 
+    /**
+     * Feature/Mixin support
+     * @name module:g/directive.g:feature
+     * @see directive/g:feature
+     */
+    modules.push(function(node, next) {
+        if (node.hasAttribute("g:feature")) {
+            var expr = gaia.parse(node.getAttribute("g:feature"));
+            node.removeAttribute("g:feature");
+            console.log("~ [feature]", expr.$source);
+            next(function(n, next) {
+                var scope = this
+                  , feature = expr(this)
+                  ;
+                console.log("~ including feature:", expr.$source);
+                if (feature) {
+                    feature.call(scope, n, next);
+                } else {
+                    console.warn("~ [feature]", expr.$source, "not available");
+                    next(scope);
+                }
+            });
+        } else {
+            next();
+        }
+    });
+
     // model-attribute on <input> tags
     modules.push(function(node, next) {
         if (1 === node.nodeType && "INPUT" === node.nodeName && node.hasAttribute("model")) {
