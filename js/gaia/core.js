@@ -25,7 +25,22 @@
  */
 
 (function() {
-    var modules = [];
+
+    var directives = {
+        indicies: []
+      , handlers: []
+    };
+
+    gaia.directive = function(id, directive, dependency) {
+        var i;
+        if (dependency) {
+            if (!(i = directives.indicies.indexOf(dependency) + 1)) console.warn("~ directive", id, "requires", dependency," but isn't exist.");
+        }
+        i = i || directives.indicies.length;
+
+        directives.indicies.splice(i, 0, id);
+        directives.handlers.splice(i, 0, directive);
+    }
 
     var __components = {
     };
@@ -101,7 +116,7 @@
      * prevents SCRIPT traverse
      * @name module:g/directive.g:ignore
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:ignore", function(node, next) {
         if ("SCRIPT" === node.nodeName
             || node.hasAttribute("g:ignore")) {
             return;
@@ -114,7 +129,7 @@
      * @name module:g/directive.g:init
      * @example <div g:init="a=1">...</div>
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:init", function(node, next) {
         var init = node.hasAttribute("g:init") && gaia.parse(node.getAttribute("g:init"));
         if (init) {
             next(function(n, next) {
@@ -127,22 +142,23 @@
     });
 
     /**
-     * repeat
+     * g:repeat / repeat
      * @name module:g/directive.g:repeat
      * @see directive/g:repeat
      */
-    modules.push(function(node, next) {
-        if (node.hasAttribute("repeat")) {
-            var match = node.getAttribute("repeat").match(/^(\w*) in (.*)$/);
+    gaia.directive("g:repeat", function(node, next) {
+        if (node.hasAttribute("g:repeat") || node.hasAttribute("repeat")) {
+            var match = (node.getAttribute("g:repeat") || node.getAttribute("repeat")).match(/^(\w*) in (.*)$/);
     //        console.log("~ [repeat]", match);
 
             if (!match || match.length !== 3) {
-                throw new Error("repeat needs 'x in y'");
+                throw new Error("g:repeat needs 'x in y'");
             }
 
             // replace node to have a reference node in linking process.
             node.parentNode.insertBefore(document.createElement('span'), node);
             node.parentNode.removeChild(node);
+            node.removeAttribute("g:repeat");
             node.removeAttribute("repeat");
 
             var iteratorExpr = new Expression(match[1])
@@ -200,7 +216,7 @@
      * @name module:g/directive.g:include
      * @see directive/g:include
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:include", function(node, next) {
         if (node.hasAttribute("g:include")) {
             var exprInclude = gaia.parseText(node.getAttribute("g:include"))
                ,values = {};
@@ -245,7 +261,7 @@
      * @name module:g/directive.g:loader
      * @see directive/g:loader
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:loader", function(node, next) {
         if (node.hasAttribute("loader")) {
             var expr = gaia.parseText(node.getAttribute("loader"))
               , propName = node.getAttribute("name")
@@ -285,7 +301,7 @@
     });
 
     // use - template
-    modules.push(function(node, next) {
+    gaia.directive("g:use", function(node, next) {
         if (node.hasAttribute("use")) {
             var name = node.getAttribute("use")
               , member = node.getAttribute("name")
@@ -323,7 +339,7 @@
      * @name module:g/directive.g:scope
      * @see directive/g:scope
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:scope", function(node, next) {
         if (node.hasAttribute("g:scope") || node.hasAttribute("scope")) {
             var expr = gaia.parse(node.getAttribute("g:scope") || node.getAttribute("scope"));
             node.removeAttribute("g:scope");
@@ -346,37 +362,11 @@
         }
     });
 
-    /**
-     * Feature/Mixin support
-     * @name module:g/directive.g:feature
-     * @see directive/g:feature
-     */
-    modules.push(function(node, next) {
-        if (node.hasAttribute("g:feature")) {
-            var expr = gaia.parse(node.getAttribute("g:feature"));
-            node.removeAttribute("g:feature");
-            console.log("~ [feature]", expr.$source);
-            next(function(n, next) {
-                var scope = this
-                  , feature = expr(this)
-                  ;
-                console.log("~ including feature:", expr.$source);
-                if (feature) {
-                    feature.call(scope, n, next);
-                } else {
-                    console.warn("~ [feature]", expr.$source, "not available");
-                    next(scope);
-                }
-            });
-        } else {
-            next();
-        }
-    });
-
     // model-attribute on <input> tags
-    modules.push(function(node, next) {
-        if (1 === node.nodeType && "INPUT" === node.nodeName && node.hasAttribute("model")) {
-            var expr = new Expression(node.getAttribute("model"));
+    gaia.directive("input.model", function(node, next) {
+        if (1 === node.nodeType && "INPUT" === node.nodeName && (node.hasAttribute("g:model") || node.hasAttribute("model"))) {
+            var expr = new Expression(node.getAttribute("g:model") || node.getAttribute("model"));
+            node.removeAttribute("g:model");
             node.removeAttribute("model");
             console.log("~ FIND INPUT", node, expr.$source);
             next(function(n, next) {
@@ -389,6 +379,7 @@
                         ign = false;
                         return;
                     }
+                    if (undefined === val) val = "";
                     n.value = val;
                 });
                 function update() {
@@ -412,7 +403,7 @@
      * @see http://stackoverflow.com/questions/272360/does-opacity0-have-exactly-the-same-effect-as-visibilityhidden
      * @see directive/g:show
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:show", function(node, next) {
         var show = node.hasAttribute("g:show") && gaia.parse(node.getAttribute("g:show"));
         if (show) {
             next(function(node, next) {
@@ -436,7 +427,7 @@
      * @see directive/g:styles
      * @see directive/g:class
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:common-attributes", function(node, next) {
         var text = !node.children.length && node.innerText && gaia.parseText(node.innerText, false)
           , src = node.src && gaia.parseText(node.getAttribute("src"), false)
           , href = node.href && gaia.parseText(node.getAttribute("href"), false)
@@ -475,7 +466,7 @@
      * @example <a g:onclick="alert('Clicked!!')"><img src="images/{{ image_id }}"></a>
      * @see directive/g:onclick
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:onclick", function(node, next) {
         var click = node.hasAttribute("g:onclick") && gaia.parse(node.getAttribute("g:onclick"))
           ;
 
@@ -500,7 +491,7 @@
      * @example <div g:init="a=1">...</div>
      * @see directive/g:init
      */
-    modules.push(function(node, next) {
+    gaia.directive("g:href-routing", function(node, next) {
         var href = 1 === node.nodeType && "A" === node.nodeName && node.getAttribute("href")
            ,watch = href && (/\{\{.*\}\}/.test(href) || !/^\w+:\//g.test(href))
            ;
@@ -560,7 +551,7 @@
           ;
 
         function f() {
-            if ((module = modules[i++])) {
+            if ((module = directives.handlers[i++])) {
                 fun = module(node, function(fun) {
                     if (fun) links.push(fun);
                     f();
