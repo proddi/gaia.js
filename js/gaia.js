@@ -228,8 +228,23 @@ var gaia = {
 		var nodes = document.querySelectorAll("[gaia]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
             console.log("~ compile", node);
-            gaia.compile(node)({});
+            gaia.compile(node)(new EventEmitter());
 		}
     });
 
+    var EventEmitter = function() {
+        this._events = {};
+    }
+    EventEmitter.prototype = {
+        $on: function(event, handler) {
+            this._events[event] = this._events[event] || [];
+            this._events[event].push(handler);
+        }
+      , $emit: function(event, data) {
+            var events = this._events[event] || [];
+            events.forEach(function(handler) {
+                handler(data);
+            });
+        }
+    }
 })();
