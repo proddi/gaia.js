@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html xmlns:g="http://gaiajs.org/g">
 <head>
-    <title>g:feature example</title>
+    <title>g:controller example</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    <script src="../../js/gaia.js"></script>
-    <script src="js/g:feature.js"></script>
-    <script src="js/SessionMixin.js"></script>
-
+    <!-- jquery is needed -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script src="js/jquery.cookie.js"></script>
-
+    <!-- gaia.js -->
+    <script src="../../js/gaia.js"></script>
+    <script src="js/g:controller.js"></script>
+    <script src="js/SessionMixin.js"></script>
+    <script src="../../js/controller/TwitterController.js"></script>
+    <!-- twitter/bootstrap -->
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
     <script src="bootstrap/js/bootstrap.js"></script>
 </head>
 
-<body gaia g:feature="$SessionMixin(new $Authentication())" class="container">
+<body gaia g:controller="$SessionMixin(new $Authentication())" class="container">
     <div>Status: {{ session.statusText }}</div>
     <form class="form-inline" g:show="!session.user">
         <input type="text" class="input-small" g:model="userid" placeholder="Email">
         <input type="password" class="input-small" g:model="passwd" placeholder="Password">
         <button g:onclick="login(userid, passwd);" class="btn" type="button">Auth! {{foo}}</button>
+        <div>(any input is valid)</div>
     </form>
     <div g:show="!!session.user">
         <span>user logged in as {{ session.user.name }} / {{ session.user.id }}</span>

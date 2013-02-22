@@ -26,7 +26,7 @@ var SessionMixin = function(auth) {
                 if (err) {
                     session.user = undefined;
                     session.error = err;
-                    session.statusText = "error during login: " + err;
+                    session.statusText = "login error: " + err;
                 } else {
                     session.user = data.user;
                     session.error = undefined;
@@ -51,6 +51,10 @@ var Authentication = function() {
 };
 Authentication.prototype = {
     login: function(user, pass, callback) {
+        if (!user) {
+            return callback(new Error("no user entered"));
+        }
+
         $.get("data/auth.json", undefined, "json")
             .done(function(data) {
                 callback(undefined, data);

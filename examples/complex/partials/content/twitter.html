@@ -1,0 +1,20 @@
+<div g:controller="$TwitterController" name="twitter" query="{{ q || '#love'}}">
+    <div class="alert alert-info">
+        <span>This is the content for {{ query }} ({{ q }}) hashtag.</span>
+    </div>
+    <div class="alert alert-error" g:show="error">
+        <span>Loading error: {{ error }}</span>
+    </div>
+    <li repeat="tweet in twitter.tweets" class="tweet">
+        <a href="https://twitter.com/{{ tweet.from_user }}/status/{{ tweet.id_str }}"><img class="author" src="{{ tweet.profile_image_url }}"></a>
+        <div class="header">
+            <span class="author">{{ tweet.from_user_name }}</span> <a href="#" class="author_address">@{{ tweet.from_user }}</a>
+        </div>
+        <div class="content">
+            <span class="text">{{ tweet.text }}</span>
+        </div>
+        <div class="footer">
+            <span class="date">{{ tweet.created_at | date }}</span>
+        </div>
+    </li>
+</div>

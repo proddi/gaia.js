@@ -3,21 +3,31 @@
         <span>this is the content for authenticated users. Current user is: "{{ session.user.name }}".</span>
     </div>
     <dl class="dl-horizontal">
-        <dt>name</dt>
-        <dd>{{ session.user.name}}</dd>
         <dt>id</dt>
         <dd>{{ session.user.id}}</dd>
+        <dt>name</dt>
+        <dd>{{ session.user.name}}</dd>
         <dt>roles</dt>
         <dd>{{ session.user.roles | join(", ") }}</dd>
         <dt>avatar</dt>
         <dd><image src="{{ session.user.image }}" width="64px"></dd>
     </dl>
+
     <ul class="nav nav-tabs" g:init="tab='activity'">
         <li class="{{ 'activity' === tab ? 'active' : '' }}">
             <a href="#" g:onclick="tab='activity'">Activity</a>
         </li>
         <li class="{{ 'schedules' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='schedules'">Schedules</a></li>
-        <li class="{{ 'twitter' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='twitter'">Twitter</a></li>
+        <li class="dropdown {{ 'twitter' === tab ? 'active' : '' }}">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Twitter<b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <!-- links -->
+                <li><a tabindex="-1" href="#" g:onclick="q='#love'; tab='twitter'">#love</a></li>
+                <li><a tabindex="-1" href="#" g:onclick="q='#hope'; tab='twitter'">#hate</a></li>
+                <li><a tabindex="-1" href="#" g:onclick="q='#freedom'; tab='twitter'">#freedom</a></li>
+            </ul>
+        </li>
     </ul>
-    <div id="content" g:include="notexists/{{ tab }}.html"></div>
+    <div>{{ q }}</div>
+    <div id="content" g:include="partials/content/{{ tab }}.html"></div>
 </div>
