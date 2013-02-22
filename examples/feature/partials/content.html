@@ -1,0 +1,15 @@
+<div g:init="$console.log('content:init')">
+    <div class="alert alert-success">
+        <span>this is the content for authenticated users. Current user is: "{{ session.user.name }}".</span>
+    </div>
+    <dl class="dl-horizontal">
+        <dt>name</dt>
+        <dd>{{ session.user.name}}</dd>
+        <dt>id</dt>
+        <dd>{{ session.user.id}}</dd>
+        <dt>roles</dt>
+        <dd>{{ session.user.roles | join(", ") }}</dd>
+        <dt>avatar</dt>
+        <dd><image src="{{ session.user.image }}" width="64px"></dd>
+    </dl>
+</div>
