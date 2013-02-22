@@ -6,6 +6,7 @@
 
     <script src="../../js/gaia.js"></script>
     <script src="js/g:feature.js"></script>
+    <script src="js/SessionMixin.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script src="js/jquery.cookie.js"></script>
@@ -14,90 +15,18 @@
     <script src="bootstrap/js/bootstrap.js"></script>
 </head>
 
-<body gaia g:init="foo='bar'" g:feature="$Session2(new $Authentication())" class="container">
-    <div class="wrapper">
-        <form class="form-inline" g:fdeature="$Auth" g:show="!session.user">
-            <div>is authenticated? {{ isAuth }}</div>
-            <input type="text" class="input-small" g:model="userid" placeholder="Email">
-            <input type="password" class="input-small" g:model="passwd" placeholder="Password">
-            <button g:onclick="login(userid, passwd);" class="btn" type="button">Auth! {{foo}}</button>
-            <div>Status: {{ statusText }}</div>
-        </form>
-        <div g:show="!!session.user">
-            <span>user logged in as {{ session.user.name }} / {{ session.user.id }}</span>
-            <button g:onclick="logout()" class="btn" type="button">Logout!</button>
-        </div>
+<body gaia g:feature="$SessionMixin(new $Authentication())" class="container">
+    <div>Status: {{ session.statusText }}</div>
+    <form class="form-inline" g:show="!session.user">
+        <input type="text" class="input-small" g:model="userid" placeholder="Email">
+        <input type="password" class="input-small" g:model="passwd" placeholder="Password">
+        <button g:onclick="login(userid, passwd);" class="btn" type="button">Auth! {{foo}}</button>
+    </form>
+    <div g:show="!!session.user">
+        <span>user logged in as {{ session.user.name }} / {{ session.user.id }}</span>
+        <button g:onclick="logout()" class="btn" type="button">Logout!</button>
     </div>
     <div id="content" g:include="partials/{{ session.user.id && 'content' || 'empty' }}.html"></div>
 </body>
-<style>
-    .wrapper {
-        margin: 50px auto;
-        width: 500px;
-    }
-</style>
-<script>
-    // user data model
-    // need jquery.session.js
-    // session = {
-    //     user: {} // custom user object or null if not auhenticated/guest
-    //     login()
-    //     logout()
-    //     busy    // authentication in progress
-    //     error   // if an error occures
-    //     statusText // readable status
-    // }
-    var Session2 = function(auth) {
-        console.log("~ Session2", auth);
-        return function(node) {
-            var scope = this
-              , session = scope.session = {
-                    user: undefined,
-                    busy: false,
-                    statusText: ""
-                }
-              ;
 
-            scope.login = function(user, pass) {
-                session.busy = true;
-                auth.login(user, pass, function(err, data) {
-                    console.log(err, data);
-                    if (err) {
-                        session.user = undefined;
-                        session.error = err;
-                    } else {
-                        session.user = data.user;
-                        session.error = undefined;
-                    }
-                    session.busy = true;
-                });
-            }
-            scope.logout = function() {
-                session.busy = true;
-                auth.logout(function(err, data) {
-                    session.user = undefined;
-                    session.busy = false;
-                });
-            }
-        }
-    }
-
-    var Authentication = function() {
-    };
-    Authentication.prototype = {
-        login: function(user, pass, callback) {
-            $.get("data/auth.json", undefined, "json")
-                    .done(function(data) {
-                        callback(undefined, data);
-                    })
-                    .fail(function(err) {
-                        callback(err);
-                    })
-            ;
-        },
-        logout: function(callback) {
-            callback();
-        }
-    };
-</script>
 </html>

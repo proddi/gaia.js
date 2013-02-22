@@ -52,7 +52,7 @@
 
     function __getComponent(id, callback) {
         var component;
-        if ((component = __components[id]) && component[0]) {
+        if ((component = __components[id]) && (component[0] || component[1])) {
             callback(component[1], component[0]);
         } else {
             if (component) {
@@ -63,13 +63,16 @@
                 __components[id] = component = [undefined, undefined, [callback]];
                 gaia.load(id.replace(":", "_"), function(err, data) {
                     var comp = component;
-                    data = gaia.compile(data);
-                    comp[0] = function() {
-                        return data.clone().apply(undefined, arguments);
+                    if (err) {
+                        comp[1] = err;
+                    } else {
+                        data = gaia.compile(data);
+                        comp[0] = function() {
+                            return data.clone().apply(undefined, arguments);
+                        }
                     }
                     // call all pending callbacks
                     comp[2].forEach(function(callback) {
-                        console.log("foo");
                         callback(comp[1], comp[0]);
                     });
                     comp[2] = undefined;
@@ -237,8 +240,12 @@
                             include = undefined;
                         }
                         __getComponent(value, function(err, binder) {
-                            include = binder(scope).appendTo(n);
-                            console.log(n);
+                            console.log(value, err, n);
+                            if (err) {
+                                n.innerHTML = "Unable to load <code>" + value + "</code>";
+                            } else {
+                                include = binder(scope).appendTo(n);
+                            }
                         });
                     }
                 });

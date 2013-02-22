@@ -12,4 +12,12 @@
         <dt>avatar</dt>
         <dd><image src="{{ session.user.image }}" width="64px"></dd>
     </dl>
+    <ul class="nav nav-tabs" g:init="tab='activity'">
+        <li class="{{ 'activity' === tab ? 'active' : '' }}">
+            <a href="#" g:onclick="tab='activity'">Activity</a>
+        </li>
+        <li class="{{ 'schedules' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='schedules'">Schedules</a></li>
+        <li class="{{ 'twitter' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='twitter'">Twitter</a></li>
+    </ul>
+    <div id="content" g:include="notexists/{{ tab }}.html"></div>
 </div>
