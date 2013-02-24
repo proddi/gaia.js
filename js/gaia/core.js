@@ -244,6 +244,7 @@
                             if (err) {
                                 n.innerHTML = "Unable to load <code>" + value + "</code>";
                             } else {
+                                while (n.firstChild) n.removeChild(n.firstChild);
                                 include = binder(scope).appendTo(n);
                             }
                         });

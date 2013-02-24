@@ -19,15 +19,14 @@
         </li>
         <li class="{{ 'schedules' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='schedules'">Schedules</a></li>
         <li class="dropdown {{ 'twitter' === tab ? 'active' : '' }}">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Twitter<b class="caret"></b></a>
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span>Twitter {{ q }}</span><b class="caret"></b></a>
             <ul class="dropdown-menu">
                 <!-- links -->
-                <li><a tabindex="-1" href="#" g:onclick="q='#love'; tab='twitter'">#love</a></li>
-                <li><a tabindex="-1" href="#" g:onclick="q='#hope'; tab='twitter'">#hate</a></li>
-                <li><a tabindex="-1" href="#" g:onclick="q='#freedom'; tab='twitter'">#freedom</a></li>
+                <li><a tabindex="-1" g:onclick="q='#love'; tab='twitter'">#love</a></li>
+                <li><a tabindex="-1" g:onclick="q='#hope'; tab='twitter'">#hope</a></li>
+                <li><a tabindex="-1" g:onclick="q='#freedom'; tab='twitter'">#freedom</a></li>
             </ul>
         </li>
     </ul>
-    <div>{{ q }}</div>
     <div id="content" g:include="partials/content/{{ tab }}.html"></div>
 </div>
