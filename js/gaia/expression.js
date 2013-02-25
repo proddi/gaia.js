@@ -69,7 +69,7 @@ var $$_get = function() {
       ;
     while (element = elements.shift()) {
         scope = scope[element];
-        if (undefined === scope) scope = {};
+        if (undefined === scope || null === scope) scope = {};
     }
     return scope;
 }
