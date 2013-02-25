@@ -1,0 +1,47 @@
+<div class="row-fluid">
+
+    <div class="alert alert-info">
+        This is just a sample page. No Settings can be changed.
+    </div>
+
+    <div class="span3">
+        <!--Sidebar content-->
+        Section
+    </div>
+    <div class="span7">
+        <!--Body content-->
+        <h2>Settings</h2>
+
+        
+        <legend>Account</legend>
+        <label>User name</label>
+        <input g:model="session.user.name" type="text" placeholder="Type something…">
+        <span class="help-block">User name using for login.</span>
+
+        <label class="checkbox">
+            <input type="checkbox" value="">
+            Keep logged in
+        </label>
+
+
+        <legend>Composing</legend>
+
+        <div class="input-prepend">
+            <span class="add-on">EMail</span>
+            <input class="span7" id="prependedInput" type="text" placeholder="Username">
+        </div>
+
+
+        <legend>Privacy</legend>
+
+        <label class="radio">
+            <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+            Option one is this and that—be sure to include why it's great
+        </label>
+        <label class="radio">
+            <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
+            Option two can be something else and selecting it will deselect option one
+        </label>
+
+    </div>
+</div>

@@ -13,21 +13,67 @@
     <!-- twitter/bootstrap -->
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
     <script src="bootstrap/js/bootstrap.js"></script>
+    <style>
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+    </style>
 </head>
 
-<body gaia g:controller="$SessionMixin(new $Authentication())" class="container">
-    <div>Status: {{ session.statusText }}</div>
-    <form class="form-inline" g:show="!session.user">
-        <input type="text" class="input-small" g:model="userid" placeholder="Email">
-        <input type="password" class="input-small" g:model="passwd" placeholder="Password">
-        <button g:onclick="login(userid, passwd);" class="btn" type="button">Auth! {{foo}}</button>
-        <div>(any input is valid)</div>
-    </form>
-    <div g:show="!!session.user">
-        <span>user logged in as {{ session.user.name }} / {{ session.user.id }}</span>
-        <button g:onclick="logout()" class="btn" type="button">Logout!</button>
+<body gaia g:controller="$SessionMixin(new $Authentication())">
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a g:onclick="page=''" class="brand" href="#">Project name</a>
+                <div class="nav-collapse collapse">
+                    <ul class="nav">
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Action</a></li>
+                                <li><a href="#">Another action</a></li>
+                                <li><a href="#">Something else here</a></li>
+                                <li class="divider"></li>
+                                <li class="nav-header">Nav header</li>
+                                <li><a href="#">Separated link</a></li>
+                                <li><a href="#">One more separated link</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <form g:show="!session.user" class="navbar-form pull-right">
+                        <input g:model="userid" class="span2" type="text" placeholder="Email">
+                        <input g:model="passwd" class="span2" type="password" placeholder="Password">
+                        <button g:onclick="login(userid, passwd)" type="button" class="btn">Sign in</button>
+                    </form>
+                    <ul g:show="session.user" class="nav pull-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-user icon-white"></i><span> {{ session.user.name }}</span> <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a g:onclick="page='inbox'" href="#"><i class="icon-inbox"></i> Inbox</a></li>
+                                <li class="divider"></li>
+                                <li><a g:onclick="page='settings'" href="#"><i class="icon-wrench"></i> Settings</a></li>
+                                <li><a g:onclick="logout()" href="#"><i class="icon-off"></i> Sign out</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
     </div>
-    <div id="content" g:include="partials/{{ session.user.id && 'content' || 'empty' }}.html"></div>
+
+    <div class="container">
+        <div id="content" g:include="partials/{{ session.user.id && (page ||'content') || 'no_signed_in' }}.html"></div>
+    </div>
 </body>
 
 </html>
