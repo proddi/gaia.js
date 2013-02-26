@@ -18,7 +18,7 @@ var TwitterController = function(node) {
             .success(function(data) {
                 scope.tweets = data.results;
             })
-            .error(function(err) {
+            .error(function(err, err) {
                 console.error("~ TwitterController.load:error", arguments);
                 scope.error = err
                 scope.tweets = [];
