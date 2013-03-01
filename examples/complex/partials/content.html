@@ -18,6 +18,7 @@
             <a href="#" g:onclick="tab='activity'">Activity</a>
         </li>
         <li class="{{ 'schedules' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='schedules'">Schedules</a></li>
+        <li class="{{ 'calculator' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='calculator'">Calculator</a></li>
         <li class="dropdown {{ 'twitter' === tab ? 'active' : '' }}">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span>Twitter {{ q }}</span><b class="caret"></b></a>
             <ul class="dropdown-menu">
@@ -25,6 +26,15 @@
                 <li><a tabindex="-1" g:onclick="q='#love'; tab='twitter'">#love</a></li>
                 <li><a tabindex="-1" g:onclick="q='#hope'; tab='twitter'">#hope</a></li>
                 <li><a tabindex="-1" g:onclick="q='#freedom'; tab='twitter'">#freedom</a></li>
+            </ul>
+        </li>
+        <li class="dropdown {{ 'flickr' === tab ? 'active' : '' }}">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span>Flickr {{ q_flickr }}</span><b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <!-- links -->
+                <li><a tabindex="-1" g:onclick="q_flickr='kitty'; tab='flickr'">#kitty</a></li>
+                <li><a tabindex="-1" g:onclick="q_flickr='hope'; tab='flickr'">#hope</a></li>
+                <li><a tabindex="-1" g:onclick="q_flickr='freedom'; tab='flickr'">#freedom</a></li>
             </ul>
         </li>
     </ul>

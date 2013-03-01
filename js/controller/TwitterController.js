@@ -3,6 +3,7 @@ var TwitterController = function(node) {
       , xhr
       , noRefresh = true
       ;
+
     console.log("~ Controller.Twitter.created()", scope, node);
 
     scope.refresh = function() {
@@ -43,4 +44,11 @@ var TwitterController = function(node) {
 
     noRefresh = false;
     scope.refresh();
+};
+
+Expression.prototype.filters.twitterfy = function(s) {
+    return s
+        .replace(/((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi,'<a href="$1" target="_blank">$1<\/a>')
+        .replace(/@([a-zA-Z0-9_]+)/gi,'<a href="http://twitter.com/$1" target="_blank">@$1<\/a>')
+        .replace(/#([a-zA-Z0-9_]+)/gi,'<a href="http://search.twitter.com/search?q=%23$1" target="_blank">#$1<\/a>');
 };

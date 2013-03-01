@@ -1,0 +1,30 @@
+<div g:controller="$CalculatorController" style="width: 200px; margin: 0 auto;" g:init="value = ''">
+    <div g:proposal="registered controller" g:controller="CalculatorController"></div>
+    <div g:proposal="file to fetch, compile and extract the function. sync or lazy?" g:controller="js/CalculatorController.js"></div>
+    <div class="row-fluid">
+        <input type="text" class="span12" g:model="display">
+    </div>
+    <div class="row-fluid">
+        <button type="button" g:onclick="type(7)" class="btn span3">7</button>
+        <button type="button" g:onclick="type(8)" class="btn span3">8</button>
+        <button type="button" g:onclick="type(9)" class="btn span3">9</button>
+        <button type="button" g:onclick="add()" class="btn span3">+</button>
+    </div>
+    <div class="row-fluid">
+        <button type="button" g:onclick="type(4)" class="btn span3">4</button>
+        <button type="button" g:onclick="type(5)" class="btn span3">5</button>
+        <button type="button" g:onclick="type(6)" class="btn span3">6</button>
+        <button type="button" g:onclick="sub()" class="btn span3">-</button>
+    </div>
+    <div class="row-fluid">
+        <button type="button" g:onclick="type(1)" class="btn span3">1</button>
+        <button type="button" g:onclick="type(2)" class="btn span3">2</button>
+        <button type="button" g:onclick="type(3)" class="btn span3">3</button>
+        <button type="button" g:onclick="mul()" class="btn span3">*</button>
+    </div>
+    <div class="row-fluid">
+        <button type="button" g:onclick="type(0)" class="btn span6">0</button>
+        <button type="button" g:onclick="type('.')" class="btn span3">,</button>
+        <button type="button" g:onclick="calc()" class="btn span3">=</button>
+    </div>
+</div>

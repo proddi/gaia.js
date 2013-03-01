@@ -8,7 +8,7 @@
             <span class="author">{{ tweet.from_user_name }}</span> <a href="#" class="author_address">@{{ tweet.from_user }}</a>
         </div>
         <div class="content">
-            <span class="text">{{ tweet.text }}</span>
+            <span class="text">{{ tweet.text | twitterfy }}</span>
         </div>
         <div class="footer">
             <span class="date">{{ tweet.created_at | date }}</span>
