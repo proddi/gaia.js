@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Typeahead experiment</title>
+    <!-- jquery is needed -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <!-- twitter/bootstrap -->
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.css">
+    <script src="../assets/bootstrap/js/bootstrap.js"></script>
+</head>
+<body>
+
+    <input type="text" class="typeahead">
+    <script>
+        $('.typeahead').typeahead({
+            source: function(q, callback) {
+                console.log("~ source()", arguments);
+                setTimeout(function() {
+                    callback([
+                        {name: "Foo"},
+                        {name:"bar"},
+                        {name:"Ehhh"},
+                        "-",
+                        "--"
+                    ]);
+                }, 500);
+            },
+            items: 4,
+            matcher: function(item) {
+                console.log("~ matcher()", arguments);
+                return true;
+            },
+            sorter: function(data) {
+                console.log("~ sorter()", arguments);
+                return data.map(function(item) {
+                    switch (item) {
+                        case "-":
+                            return "xxx";
+                        case "--":
+                            return "<b>Create ...</b>";
+                        default:
+                            return "<span><img src='http://www.mein-kika.de/_dateien/imagecache/user_image_default/avatar_selection/avatar_79.jpg'>" + item.name + "</span>";
+                    }
+                });
+            },
+            updater: function() {
+                console.log("~ updater()", arguments);
+                return "<b>**</b>**";
+            },
+            highlighter: function(item) {
+                console.log("~ highlighter()", arguments);
+                return item;
+            },
+            template: "fooooo"
+        });
+    </script>
+</body>
+</html>
