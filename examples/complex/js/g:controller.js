@@ -11,16 +11,27 @@ gaia.directive("g:controller", function(node, next) {
         node.removeAttribute("name");
         console.log("~ [controller]", expr.$source, "as", name);
         next(function(n, next) {
-            var scope = this
-                , feature = expr(this)
-                ;
-            console.log("~ including controller:", expr.$source);
-            if (feature) {
-                /*if (!complex.useParentScope) */scope = gaia.scope(scope);
-                feature.call(scope, n);
-                if (name) this[name] = scope;
-            } else {
-                console.warn("~ [controller]", expr.$source, "not available");
+            try {
+                var scope = this
+                  , controller = expr(scope)
+                  ;
+
+                console.log("~ [g:controller]", "apply controller:", expr.$source);
+
+                if ("string" === typeof controller) {
+                    controller = eval.call({}, "var $$ZzzyyDfe = (function() { var $$werfwrwr = " + gaia.load(controller) + "; return $$werfwrwr;})(); $$ZzzyyDfe;");
+                    console.log("~ [g:controller]", "loaded");
+                }
+
+                if (controller) {
+                    /*if (!complex.useParentScope) */scope = gaia.scope(scope);
+                    controller.call(scope, n);
+                    if (name) this[name] = scope;
+                } else {
+                    console.warn("~ [g:controller]", expr.$source, "not available");
+                }
+            } catch (e) {
+                console.error("! [g:controller]", e);
             }
             next(scope);
         });

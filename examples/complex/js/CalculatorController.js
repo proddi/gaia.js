@@ -1,4 +1,4 @@
-var CalculatorController = function(node) {
+function CalculatorController(node) {
     var scope = this
       , operation = function(val) { return val; }
       ;
