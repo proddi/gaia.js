@@ -257,7 +257,7 @@
                     }.bind(this, key));
                 }
 
-//                next(this); // linking
+                next(this); // linking
             });
         } else {
             next(); // compiling
