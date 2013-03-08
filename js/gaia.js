@@ -52,7 +52,7 @@ var gaia = {
         if (callback) {
             return (__xhrs[url] = __xhrs[url] || $.get(url + "?random=" + Math.random()))
             .done(callback.bind(undefined, undefined))
-            .fail(callback.bind(undefined, true))
+            .fail(function(err, err, err) { callback(err); })
             ;
         }
         var req = new XMLHttpRequest();
