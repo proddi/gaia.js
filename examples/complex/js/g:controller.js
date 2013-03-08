@@ -11,10 +11,9 @@ gaia.directive("g:controller", function(node, next) {
         node.removeAttribute("name");
         console.log("~ [controller]", expr.$source, "as", name);
         next(function(n, next) {
+            var scope = this;
             try {
-                var scope = this
-                  , controller = expr(scope)
-                  ;
+                var controller = expr(scope);
 
                 console.log("~ [g:controller]", "apply controller:", expr.$source);
 

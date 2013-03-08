@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:g="http://gaiajs.org/g">
+<head>
+    <title>g:controller example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- jquery is needed -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <!-- gaia.js -->
+    <script src="../../../js/gaia.js"></script>
+    <script src="js/g:view.js"></script>
+    <!-- twitter/bootstrap -->
+    <link rel="stylesheet" href="../../assets/bootstrap/css/bootstrap.css">
+    <script src="../../assets/bootstrap/js/bootstrap.js"></script>
+    <style>
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+    </style>
+</head>
+
+<body gaia>
+
+    <div class="container">
+        <ul class="nav nav-tabs" g:init="tab='activity'">
+            <li class="{{ 'activity' === tab ? 'active' : '' }}"><a href="#" g:onclick="content.load('partials/x.html')">Activity</a></li>
+            <li class="{{ 'schedules' === tab ? 'active' : '' }}"><a href="#" g:onclick="content.load('partials/not-exists.html')">Schedules</a></li>
+            <li class="{{ 'calculator' === tab ? 'active' : '' }}"><a href="#" g:onclick="tab='calculator'">Calculator</a></li>
+        </ul>
+        <div g:view="view" g:name="content"></div>
+        <div>Status: {{ content.error }}</div>
+    </div>
+
+</body>
+
+</html>

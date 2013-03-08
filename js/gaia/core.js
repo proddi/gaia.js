@@ -50,7 +50,7 @@
         __components[id] = [binder];
     }
 
-    function __getComponent(id, callback) {
+    gaia.__getComponent = function __getComponent(id, callback) {
         var component;
         if ((component = __components[id]) && (component[0] || component[1])) {
             callback(component[1], component[0]);
@@ -510,7 +510,7 @@
                     var href = n.getAttribute("href");
                     if (href && !/^\w+:\//g.test(href)) {
                         ev.preventDefault();
-                        gaia.routeProvider.push({}, href, href);
+                        gaia.routeProvider && gaia.routeProvider.push({}, href, href);
                     }
                 }, false);
                 next(this);

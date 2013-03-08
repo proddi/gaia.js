@@ -228,7 +228,7 @@ var gaia = {
 		var nodes = document.querySelectorAll("[gaia]");
 		for (var i = 0, node; (node = nodes[i]); i++) {
             console.log("~ compile", node);
-            gaia.compile(node)(new EventEmitter());
+            gaia.compile(node)(gaia.$scope = new EventEmitter());
 		}
     });
 
