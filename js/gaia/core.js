@@ -239,7 +239,7 @@
                             include();
                             include = undefined;
                         }
-                        __getComponent(value, function(err, binder) {
+                        gaia.__getComponent(value, function(err, binder) {
                             console.log(value, err, n);
                             if (err) {
                                 n.innerHTML = "Unable to load <code>" + value + "</code>";
