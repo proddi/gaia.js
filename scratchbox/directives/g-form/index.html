@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>form experiment</title>
+    <!-- jquery is needed -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <!-- gaia.js -->
+    <script src="../../../js/gaia.js"></script>
+    <script src="js/g:submit.js"></script>
+    <!-- twitter/bootstrap -->
+    <link rel="stylesheet" href="../../assets/bootstrap/css/bootstrap.css">
+    <script src="../../assets/bootstrap/js/bootstrap.js"></script>
+    <!-- jasny/bootstrap -->
+    <link rel="stylesheet" href="../../assets/jasny-bootstrap/css/jasny-bootstrap.css">
+    <script src="../../assets/jasny-bootstrap/js/jasny-bootstrap.js"></script>
+</head>
+<body gaia g:init="files=[]">
+
+    <form g:submit="alert('foo')" g:submit-success="files.push({}); function(data) { console.log(data); }">
+        <fieldset>
+            <legend>Legend</legend>
+            <label>Label name</label>
+            <input type="text" name="title" placeholder="Type something">
+            <label>Some file</label>
+            <input type="file" id="the-file" name="file">
+            <div class="fileupload fileupload-new" data-provides="fileupload">
+                <div class="fileupload-new thumbnail" style="width: 50px; height: 50px;"><img src="http://www.placehold.it/50x50/EFEFEF/AAAAAA" /></div>
+                <div class="fileupload-preview fileupload-exists thumbnail" style="width: 50px; height: 50px;"></div>
+                <span class="btn btn-file"><span class="fileupload-new">Select image</span><span class="fileupload-exists">Change</span><input type="file" name="image" /></span>
+                <a href="#" class="btn fileupload-exists" data-dismiss="fileupload">Remove</a>
+            </div>
+            <span class="help-block">Example block-level help text here.</span>
+            <label class="checkbox">
+                <input type="checkbox" name="check"> Check me out
+            </label>
+            <button type="submit" class="btn">Submit</button>
+        </fieldset>
+    </form>
+</body>
+</html>
