@@ -1,7 +1,7 @@
 <?php
 
 
-    sleep(1);
+    usleep(.5*1000*1000);
 
 //    var_dump($_GET);
 //    var_dump($_POST);
